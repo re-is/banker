@@ -4,11 +4,18 @@
 		<meta charset="UTF-8">
 		<style type="text/css">
 
+			button {
+				background-color: #ddd;
+				width: 100px;
+				height: 50px;
+			}
+
 		</style>
 	</head>
 	<body>
 		<div id="body">
-			<input type="text" id="inp"></input><button onclick="setCookie('name', 0)">Set Süti</button>
+			<input type="text" id="inp"></input><br><br>
+			<button onclick="setCookie('name', 0)">Set Süti</button><br><br>
 			<button onclick="Android.showToast(getCookie('name'))">Get Süti</button>
 		</div>
 
