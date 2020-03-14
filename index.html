@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<style type="text/css">
+
+			button {
+				background-color: #ddd;
+				width: 100px;
+				height: 50px;
+			}
+
+		</style>
+	</head>
+	<body>
+		<div id="body">
+			<input type="text" id="inp"></input><br><br>
+			<button onclick="setCookie('name', 0)">Set Süti</button><br><br>
+			<button onclick="getCookie('name')">Get Süti</button><br><br>
+			<div id="inner"></div>
+		</div>
+
+		<script type="text/javascript">
+
+			function setCookie(name, value) {
+				value = window.document.getElementById('inp').value;
+				window.document.getElementById('inner').innerHTML = value;
+				window.document.cookie = (name + '=' + value + ';expires=Thu, 01 Jan 2100 00:00:01 GMT;');
+			}
+
+			function getCookie(name) {
+				var ck = window.document.cookie;
+				var value = ((ck.indexOf(name+'=') > -1) ? ck.split(name+'=')[1].split(';')[0] : "");
+				window.document.getElementById('inner').innerHTML = value;
+			}
+
+		</script>
+	</body>
+</html>
