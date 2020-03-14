@@ -9,14 +9,14 @@
 	<body>
 		<div id="body">
 			<input type="text" id="inp"></input><button onclick="setCookie('name', 0)">Set Süti</button>
-			<button onclick="alert(getCookie('name'))">Get Süti</button>
+			<button onclick="Android.showToast(getCookie('name'))">Get Süti</button>
 		</div>
 
 		<script type="text/javascript">
 
 			function setCookie(name, value) {
 				value = window.document.getElementById('inp').value;
-				alert(value);
+				Android.showToast(value);
 				window.document.cookie = (name + '=' + value + ';expires=Thu, 01 Jan 2100 00:00:01 GMT;');
 			}
 
