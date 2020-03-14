@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<style type="text/css">
+
+		</style>
+	</head>
+	<body>
+		<div id="body">
+			<input type="text" id="inp"></input><button onclick="setCookie('name', 0)">Set Süti</button>
+			<button onclick="alert(getCookie('name'))">Get Süti</button>
+		</div>
+
+		<script type="text/javascript">
+
+			function setCookie(name, value) {
+				value = window.document.getElementById('inp').value;
+				alert(value);
+				window.document.cookie = (name + '=' + value + ';expires=Thu, 01 Jan 2100 00:00:01 GMT;');
+			}
+
+			function getCookie(name) {
+				var ck = window.document.cookie;
+				return ((ck.indexOf(name+'=') > -1) ? ck.split(name+'=')[1].split(';')[0] : "");
+			}
+
+		</script>
+	</body>
+</html>
