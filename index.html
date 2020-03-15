@@ -23,37 +23,37 @@
 			}
 
 				#new-tran {
-					color: #d53;
-					margin-bottom: 5vh;
+					color: #e53;
+					margin: 2vh;
+					font-size: 5vw;
 				}
 
-				.new-buttons {
-					padding: 2vh;
-					margin-left: 3vw;
-					margin-bottom: 1vh;
-					background-color: #333;
-					border-radius: 1vw;
-				}
+				.main-rows {
+					padding: 1vh;
+				}	.new-buttons {
+						display: inline-block;
+						padding: 2vh;
+						margin-left: 2vw;
+						margin-bottom: 1vh;
+						background-color: #333;
+						border-radius: 1vw;
+					}
 
 		</style>
 	</head>
 	<body>
 		<div id="body">
 			<div id="new-tran">Új tranzakció:</div>
-			<div class="new-buttons">Vásárlás, Élelmiszer</div>
-			<div class="new-buttons">Vásárlás, Más</div>
-			<div class="new-buttons">Ruházat</div>
-			<div class="new-buttons">Szabadidő</div>
-			<div class="new-buttons">Otthon, Rezsi</div>
-			<div class="new-buttons">Otthon, Javítás</div>
-			<div class="new-buttons">Autó, Üzemanyag</div>
-			<div class="new-buttons">Autó, Javítás</div>
-			<div class="new-buttons">Autó, Más</div>
+			<div class="main-rows">Vásárlás<div class="new-buttons">Élelmiszer</div><div class="new-buttons">Más</div></div>
+			<div class="main-rows">Magán<div class="new-buttons">Ruházat</div><div class="new-buttons">Szabadidő</div></div>
+			<div class="main-rows">Otthon<div class="new-buttons">Rezsi</div><div class="new-buttons">Javítás</div></div>
+			<div class="main-rows">Autó<div class="new-buttons">Üzemanyag</div><div class="new-buttons">Javítás</div><div class="new-buttons">Más</div></div>
 		</div>
-
 		<script type="text/javascript">
 
-
+			window.addEventListener('load', function() {
+				android.msg("ddd");
+			});
 
 		</script>
 	</body>
