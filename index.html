@@ -11,9 +11,14 @@
 				user-select: none;
 			}
 
+			hr {
+				border: 1px solid #d51;
+			}
+
 			#body {
 				position: absolute;
-				overflow: auto;
+				overflow-y: auto;
+				overflow-x: hidden;
 				top: 0;
 				left: 0;
 				right: 0;
@@ -22,35 +27,55 @@
 				padding: 2vw;
 			}
 
-				#new-tran {
-					color: #e53;
-					margin: 2vh;
+				#new-tran-title, #graf-title {
+					padding: 1vh 0;
+					text-align: center;
 					font-size: 5vw;
+					color: #d52;
 				}
 
 				.main-rows {
 					padding: 1vh;
-				}	.new-buttons {
-						display: inline-block;
-						padding: 2vh;
-						margin-left: 2vw;
+				}
+					.titles {
 						margin-bottom: 1vh;
+						font-weight: bold;
+					}
+					.new-buttons, .graf {
+						display: inline-block;
+						width: 30%;
+						padding: 2vh 0;
+						text-align: center;
+						margin-left: 3%;
+						margin-bottom: 2%;
 						background-color: #333;
 						border-radius: 1vw;
 					}	.new-buttons.clicked {
-							background-color: #e42;
+							background-color: #d52;
+						}
+						.graf.clicked {
+							background-color: #d52;
 						}
 
 		</style>
 	</head>
 	<body>
 		<div id="body">
-			<div id="new-tran">Új tranzakció</div>
+			<div id="new-tran-title">
+				Új tranzakció
+				<hr>
+			</div>
 			<div id="new-buttons-block">
-				<div class="main-rows">Vásárlás<div class="new-buttons">Élelmiszer</div><div class="new-buttons">Műszaki</div><div class="new-buttons">Más</div></div>
-				<div class="main-rows">Magán<div class="new-buttons">Ruházat</div><div class="new-buttons">Szabadidő</div></div>
-				<div class="main-rows">Otthon<div class="new-buttons">Rezsi</div><div class="new-buttons">Javítás</div><div class="new-buttons">Lakbér</div></div>
-				<div class="main-rows">Autó<div class="new-buttons">Üzemanyag</div><div class="new-buttons">Javítás</div><div class="new-buttons">Más</div></div>
+				<div class="main-rows"><div class="titles">Vásárlás</div><div class="new-buttons">Élelmiszer</div><div class="new-buttons">Műszaki</div><div class="new-buttons">Más</div></div>
+				<div class="main-rows"><div class="titles">Magán</div><div class="new-buttons">Ruházat</div><div class="new-buttons">Szabadidő</div><div class="new-buttons">Egészség</div></div>
+				<div class="main-rows"><div class="titles">Otthon</div><div class="new-buttons">Rezsi</div><div class="new-buttons">Javítás</div><div class="new-buttons">Lakbér</div></div>
+				<div class="main-rows"><div class="titles">Autó</div><div class="new-buttons">Üzemanyag</div><div class="new-buttons">Javítás</div><div class="new-buttons">Más</div></div>
+				<hr>
+			</div>
+			<div id="graf-block">
+				<div class="main-rows"><div id="graf-title">Grafikonok</div><div class="graf">Heti</div><div class="graf">Havi</div><div class="graf">Éves</div></div>
+				<hr>
+				<div class="bottom-buttons" id="fixed-trans">Rögzített tranzakciók</div>
 			</div>
 		</div>
 		<script type="text/javascript">
@@ -58,14 +83,24 @@
 			window.addEventListener('load', function() {
 				// OnClick hozzáadás:
 				var btns = document.getElementsByClassName('new-buttons');
-				for (var i = 0; i < btns.length; i++) btns[i].setAttribute('onclick', 'clickedUp(this)');
+				for (var i = 0; i < btns.length; i++) btns[i].setAttribute('onclick', 'clicked(this)');
+				btns = document.getElementsByClassName('graf');
+				for (var i = 0; i < btns.length; i++) btns[i].setAttribute('onclick', 'clicked(this)');
 			});
 
 			// Új gomb érintéskor:
-			function clickedUp(e) {
+			function clicked(e) {
 				e.className += ' clicked';
 				setTimeout(function() {
-					document.getElementById('new-buttons-block').style.display = 'none';
+					if (e.className == 'new-buttons clicked') {
+						document.getElementById('new-buttons-block').style.display = 'none';
+						document.getElementById('graf-block').style.display = 'none';
+					}
+					if (e.className == 'graf clicked') {
+						document.getElementById('new-buttons-block').style.display = 'none';
+						document.getElementById('new-tran-title').style.display = 'none';
+						document.getElementById('fixed-trans').style.display = 'none';
+					}
 					e.className = e.className.replace(' clicked', '');
 				}, 200);
 			}
