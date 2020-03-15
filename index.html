@@ -7,7 +7,7 @@
 			body * {
 				color: #fff;
 				font-family: "Arial";
-				font-size: 3vh;
+				font-size: 2.3vh;
 				user-select: none;
 			}
 
@@ -27,38 +27,36 @@
 				padding: 1vh 2vw;
 			}
 
-				#new-tran-title, #graf-title {
-					padding: 1vh 0;
+				#new-withdrawal-title, #new-deposit-title, #graf-title {
+					padding-bottom: 1vh;
 					text-align: center;
-					font-size: 4vh;
+					font-size: 2.6vh;
 					color: #ea6;
 				}
 
-				.main-rows {
-					padding: 1vh 2vw;
+				.titles {
+					margin: 1vh 0;
+					font-weight: bold;
 				}
-					.titles {
-						margin-bottom: 1vh;
-						font-weight: bold;
+				.new-buttons, .graf, .deposit {
+					display: inline-block;
+					width: 30%;
+					padding: 2vh 0;
+					text-align: center;
+					margin-left: 3%;
+					margin-bottom: 1vh;
+					background-color: #333;
+					border-radius: 1vw;
+				}	.new-buttons.clicked, .graf.clicked, .deposit.clicked {
+						background-color: #ea6;
 					}
-					.new-buttons, .graf {
-						display: inline-block;
-						width: 30%;
-						padding: 2vh 0;
-						text-align: center;
-						margin-left: 3%;
-						margin-bottom: 1vh;
-						background-color: #333;
-						border-radius: 1vw;
-					}	.new-buttons.clicked {
-							background-color: #ea6;
-						}
-						.graf.clicked {
-							background-color: #ea6;
-						}
 
-				#fixed-trans {
-					padding: 2vh 4vw;
+				.bottom-buttons {
+					display: inline-block;
+					width: 46%;
+					margin-left: 3%;
+					text-align: center;
+					padding: 2vh 0;
 					background-color: #333;
 					border-radius: 1vw;
 				}
@@ -67,8 +65,8 @@
 	</head>
 	<body>
 		<div id="body">
-			<div id="new-tran-title">
-				Új tranzakció
+			<div id="new-withdrawal-title">
+				Új kiadás
 				<hr>
 			</div>
 			<div id="new-buttons-block">
@@ -78,11 +76,15 @@
 				<div class="main-rows"><div class="titles">Autó</div><div class="new-buttons">Üzemanyag</div><div class="new-buttons">Javítás</div><div class="new-buttons">Más</div></div>
 				<hr>
 			</div>
-			<div id="graf-block">
-				<div class="main-rows"><div id="graf-title">Grafikonok</div><div class="graf">Heti</div><div class="graf">Havi</div><div class="graf">Éves</div></div>
-				<hr>
-				<div id="fixed-trans">Rögzített tranzakciók</div>
-			</div>
+			<div id="new-deposit-title">Új bevétel</div>
+			<div class="main-rows"><div class="deposit">Fizetés</div><div class="deposit">Ajándék</div><div class="deposit">Más</div></div>
+			<hr>
+
+			<div id="graf-title">Grafikonok</div>
+			<div class="main-rows"><div class="graf">Heti</div><div class="graf">Havi</div><div class="graf">Éves</div></div>
+			<hr>
+
+			<div class="bottom-buttons" id="fixed-trans">Tranzakciók</div><div class="bottom-buttons" id="settings">Beállítások</div>
 		</div>
 		<script type="text/javascript">
 
@@ -92,6 +94,8 @@
 				for (var i = 0; i < btns.length; i++) btns[i].setAttribute('onclick', 'clicked(this)');
 				btns = document.getElementsByClassName('graf');
 				for (var i = 0; i < btns.length; i++) btns[i].setAttribute('onclick', 'clicked(this)');
+				btns = document.getElementsByClassName('deposit');
+				for (var i = 0; i < btns.length; i++) btns[i].setAttribute('onclick', 'clicked(this)');
 			});
 
 			// Új gomb érintéskor:
@@ -100,12 +104,6 @@
 				setTimeout(function() {
 					if (e.className == 'new-buttons clicked') {
 						document.getElementById('new-buttons-block').style.display = 'none';
-						document.getElementById('graf-block').style.display = 'none';
-					}
-					if (e.className == 'graf clicked') {
-						document.getElementById('new-buttons-block').style.display = 'none';
-						document.getElementById('new-tran-title').style.display = 'none';
-						document.getElementById('fixed-trans').style.display = 'none';
 					}
 					e.className = e.className.replace(' clicked', '');
 				}, 200);
