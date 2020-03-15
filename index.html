@@ -5,7 +5,7 @@
 		<style type="text/css">
 
 			button {
-				background-color: #3c4;
+				background-color: #38d;
 				color: #fff;
 				width: 100px;
 				height: 50px;
@@ -16,21 +16,21 @@
 	<body>
 		<div id="body">
 			<input type="text" id="inp"></input><br><br>
-			<button onclick="setCookie('name', 0)">Set Süti</button><br><br>
-			<button onclick="getCookie('name')">Get Süti</button><br><br>
+			<button onclick="setData('name', 0)">Set Süti</button><br><br>
+			<button onclick="getData('name')">Get Süti</button><br><br>
 			<div id="inner"></div>
 		</div>
 
 		<script type="text/javascript">
 
-			function setCookie() {
+			function setData() {
 				var value = document.getElementById('inp').value;
 				android.msg(value);
-				android.setCookie(value);
+				android.setData(value);
 			}
 
-			function getCookie() {
-				android.msg(android.getCookie());
+			function getData() {
+				android.msg(android.getData());
 			}
 
 		</script>
