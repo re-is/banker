@@ -58,17 +58,20 @@
 				var btns = document.getElementsByClassName('new-buttons');
 				for (var i = 0; i < btns.length; i++) {
 					btns[i].setAttribute('onmousedown', 'clickedDown(this)');
+					btns[i].setAttribute('ontouch', 'clickedDown(this)');
 					btns[i].setAttribute('onclick', 'clickedUp(this)');
 				}
 			});
 
+			// Új gomb lenyomáskor:
 			function clickedDown(e) {
 				e.className += ' clicked';
 				setTimeout(function() { e.className = e.className.replace(' clicked', '') }, 300);
 			}
 
+			// Új gomb érintéskor:
 			function clickedUp(e) {
-				alert(e.innerHTML)
+				android.msg(e.innerHTML)
 			}
 
 		</script>
