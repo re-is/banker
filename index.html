@@ -6,6 +6,7 @@
 
 			button {
 				background-color: #fa5;
+				color: #fff;
 				width: 100px;
 				height: 50px;
 			}
@@ -23,15 +24,15 @@
 		<script type="text/javascript">
 
 			function setCookie(name, value) {
-				value = window.document.getElementById('inp').value;
-				window.document.getElementById('inner').innerHTML = value;
-				window.document.cookie = (name + '=' + value + ';expires=Thu, 01 Jan 2037 00:00:01 GMT;');
+				value = document.getElementById('inp').value;
+				android.toast(value);
+				document.cookie = (name + '=' + value + ';expires=Thu, 01 Jan 2037 00:00:01 GMT;');
 			}
 
 			function getCookie(name) {
-				var ck = window.document.cookie;
+				var ck = document.cookie;
 				var value = ((ck.indexOf(name+'=') > -1) ? ck.split(name+'=')[1].split(';')[0] : "");
-				window.document.getElementById('inner').innerHTML = value;
+				android.toast(value);
 			}
 
 		</script>
