@@ -46,32 +46,28 @@
 	<body>
 		<div id="body">
 			<div id="new-tran">Új tranzakció</div>
-			<div class="main-rows">Vásárlás<div class="new-buttons">Élelmiszer</div><div class="new-buttons">Műszaki</div><div class="new-buttons">Más</div></div>
-			<div class="main-rows">Magán<div class="new-buttons">Ruházat</div><div class="new-buttons">Szabadidő</div></div>
-			<div class="main-rows">Otthon<div class="new-buttons">Rezsi</div><div class="new-buttons">Javítás</div><div class="new-buttons">Lakbér</div></div>
-			<div class="main-rows">Autó<div class="new-buttons">Üzemanyag</div><div class="new-buttons">Javítás</div><div class="new-buttons">Más</div></div>
+			<div id="new-buttons-block">
+				<div class="main-rows">Vásárlás<div class="new-buttons">Élelmiszer</div><div class="new-buttons">Műszaki</div><div class="new-buttons">Más</div></div>
+				<div class="main-rows">Magán<div class="new-buttons">Ruházat</div><div class="new-buttons">Szabadidő</div></div>
+				<div class="main-rows">Otthon<div class="new-buttons">Rezsi</div><div class="new-buttons">Javítás</div><div class="new-buttons">Lakbér</div></div>
+				<div class="main-rows">Autó<div class="new-buttons">Üzemanyag</div><div class="new-buttons">Javítás</div><div class="new-buttons">Más</div></div>
+			</div>
 		</div>
 		<script type="text/javascript">
 
 			window.addEventListener('load', function() {
 				// OnClick hozzáadás:
 				var btns = document.getElementsByClassName('new-buttons');
-				for (var i = 0; i < btns.length; i++) {
-					btns[i].setAttribute('onmousedown', 'clickedDown(this)');
-					btns[i].setAttribute('ontouch', 'clickedDown(this)');
-					btns[i].setAttribute('onclick', 'clickedUp(this)');
-				}
+				for (var i = 0; i < btns.length; i++) btns[i].setAttribute('onclick', 'clickedUp(this)');
 			});
-
-			// Új gomb lenyomáskor:
-			function clickedDown(e) {
-				e.className += ' clicked';
-				setTimeout(function() { e.className = e.className.replace(' clicked', '') }, 300);
-			}
 
 			// Új gomb érintéskor:
 			function clickedUp(e) {
-				android.msg(e.innerHTML)
+				e.className += ' clicked';
+				setTimeout(function() {
+					document.getElementById('new-buttons-block').style.display = 'none';
+					e.className = e.className.replace(' clicked', '');
+				}, 200);
 			}
 
 		</script>
