@@ -7,7 +7,7 @@
 			body * {
 				color: #fff;
 				font-family: "Arial";
-				font-size: 4vw;
+				font-size: 2vh;
 				user-select: none;
 			}
 
@@ -24,18 +24,18 @@
 				right: 0;
 				bottom: 0;
 				background-color: #222;
-				padding: 2vw;
+				padding: 1vh 2vw;
 			}
 
 				#new-tran-title, #graf-title {
 					padding: 1vh 0;
 					text-align: center;
-					font-size: 5vw;
+					font-size: 2.4vh;
 					color: #ea6;
 				}
 
 				.main-rows {
-					padding: 1vh;
+					padding: 1vh 2vw;
 				}
 					.titles {
 						margin-bottom: 1vh;
@@ -47,7 +47,7 @@
 						padding: 2vh 0;
 						text-align: center;
 						margin-left: 3%;
-						margin-bottom: 2%;
+						margin-bottom: 1vh;
 						background-color: #333;
 						border-radius: 1vw;
 					}	.new-buttons.clicked {
@@ -56,6 +56,12 @@
 						.graf.clicked {
 							background-color: #ea6;
 						}
+
+				#fixed-trans {
+					padding: 2vh 4vw;
+					background-color: #333;
+					border-radius: 1vw;
+				}
 
 		</style>
 	</head>
@@ -75,7 +81,7 @@
 			<div id="graf-block">
 				<div class="main-rows"><div id="graf-title">Grafikonok</div><div class="graf">Heti</div><div class="graf">Havi</div><div class="graf">Éves</div></div>
 				<hr>
-				<div class="bottom-buttons" id="fixed-trans">Rögzített tranzakciók</div>
+				<div id="fixed-trans">Rögzített tranzakciók</div>
 			</div>
 		</div>
 		<script type="text/javascript">
