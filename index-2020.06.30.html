@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<!--suppress CssUnusedSymbol, JSUnresolvedVariable, JSUnresolvedFunction, JSNonASCIINames, JSUnfilteredForInLoop, RegExpSingleCharAlternation, JSCheckFunctionSignatures -->
+<html lang="HU">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="viewport-fit=cover">
+		<title>Banker</title>
+		<style type="text/css">
+
+			:root {
+				--font-size: 4vw;
+				--app-bg: #222;
+				--body-bg-5: #777;
+				--body-bg-6: #222;
+				--body-bg-7: #954;
+				--body-bg-8: #533;
+				--body-bg-9: #496;
+				--body-bg-10: #343;
+				--body-bg-11: #269;
+				--body-bg-12: #346;
+				--button-bg-light: rgba(150, 150, 150, 0.2);
+				--button-bg-dark: rgba(0, 0, 0, 0.3);
+				--button-bg-touched: rgba(150, 150, 150, 0.6);
+				--comment-color: #acd;
+				--comment-bg-focus: rgba(0, 0, 0, 0.7);
+				--red: #b32;
+				--orange: #ea6;
+				--income-green: #3c6;
+				--outlay-red: #d65;
+				--page-transition: 150ms;
+				--button-transition: 300ms;
+				--text-shadow: 0 0 0.5vw #000;
+			}
+
+			@font-face {
+				font-family: "myTahoma";
+				src: url("tahoma.ttf");
+			}
+
+			body {
+				margin: 0;
+				background-color: #000;
+			}	body *:not(script) {
+					color: #fff;
+					font-family: "myTahoma", sans-serif;
+					font-size: var(--font-size);
+					user-select: none;
+				}
+
+			.MainBody {
+				position: absolute;
+				overflow: hidden;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				opacity: 0;
+				transition: opacity var(--page-transition) linear;
+			}	.MainBody.loaded { opacity: initial }
+
+			/* Oldalak
+			---------------------------------------------------------------------------------- */
+
+			.MainPage, .OutlayPage, .IncomePage, .SummaryPage, .TransactionsPage, .BudgetPage, .SettingsPage {
+				text-shadow: var(--text-shadow);
+				position: absolute;
+				width: calc(100vw - 4vw);
+				height: calc(100vh - 2vh);
+				padding: 1vh 2vw;
+				top: 0;
+				left: 0;
+				transition: all var(--page-transition) linear, margin 0ms linear var(--page-transition);
+				visibility: hidden;
+				opacity: 0;
+				margin-top: -110vh;
+			}	.MainPage.visible, .OutlayPage.visible, .IncomePage.visible, .SummaryPage.visible, .TransactionsPage.visible, .BudgetPage.visible, .SettingsPage.visible {
+					transition: var(--page-transition) linear;
+					transition-delay: var(--page-transition);
+					transition-property: visibility, opacity;
+					visibility: visible;
+					opacity: initial;
+					margin-top: 0;
+				}
+
+				/* magasság: 4vh */
+				.main-titles {
+					margin-top: 1vh;
+					color: var(--orange);
+					text-align: center;
+					font-size: calc(var(--font-size) + 0.6vw);
+					height: 3vh;
+					line-height: 3vh;
+				}
+
+				/* magasság: 3.7vh */
+				.separators {
+					position: relative;
+					height: 2vh;
+					margin-bottom: 1.7vh;
+					border-bottom: 2px solid var(--red);
+					box-sizing: border-box;
+					z-index: 100000;
+				}
+
+				.hr-tags {
+					width: 50%;
+					margin-top: 2vh;
+					margin-bottom: 2vh;
+					border: 1px solid transparent;
+				}
+
+				.left-titles {
+					color: var(--orange);
+					margin: 1vh 0;
+					height: 3vh;
+					line-height: 3vh;
+				}
+
+				.buttons {
+					display: inline-block;
+					width: calc(33.333% - 1vw);
+					height: 6.5vh;
+					line-height: calc(6.5vh - 4px); /* -2px border */
+					text-align: center;
+					margin: 0 0.5vw 1vh;
+					box-sizing: border-box;
+					border-radius: 1vw;
+				}	.buttons.touched {
+						transition: 0ms;
+						background-color: var(--button-bg-touched);
+					}
+
+				/* Új kiadás / bevétel oldalak
+				---------------------------------------------------------------------------------- */
+
+				/* Kezdőegyenleg */
+				.start-balance-frames {
+					position: absolute;
+					display: none;
+					padding: calc(5vh + 10vw) 0;
+					text-align: center;
+					width: calc(100% - 4vw);
+					background-color: #333;
+					border-radius: 1vw;
+					z-index: 1000;
+				}	/*--------------------*/
+					.start-balance-input {
+						margin-top: 3vh;
+						font-size: calc(var(--font-size) + 1vw);
+					}
+
+				/* Vásárlás */
+				.new-titles {
+					display: inline-block;
+					margin-top: 5vw;
+					margin-left: 4vw;
+					height: 10vw;
+					line-height: 10vw;
+					color: var(--orange);
+				}
+
+				/* / = : */
+				.operators {
+					text-shadow: none;
+					padding: 0 2vw;
+					font-weight: bold;
+					color: #c43;
+				}
+
+				/* Élelmiszer, 2 000 */
+				.new-params {
+					display: inline-block;
+				}
+
+					/* 2 000 */
+					.new-amount {
+						font-size: calc(var(--font-size) + 2vw);
+						vertical-align: -0.4vh;
+					}
+
+					/* comment */
+					.new-comment {
+						width: 55vw;
+						padding: 1.2vh 3vw;
+						outline: none;
+						border: none;
+						border-radius: 1vw;
+					}	.new-comment:focus { background-color: var(--comment-bg-focus) }
+
+					/* ismétlődés */
+					.show-repeat-selector {
+						width: auto;
+						padding: 0 4vw;
+					}
+
+				/* Számbillentyűzet */
+				.numpad {
+					position: absolute;
+					display: table;
+					margin-left: 4vw;
+					bottom: 6vw;
+					width: calc(100% - 12vw);
+					border-top: 2px solid var(--red);
+					border-spacing: 2vw;
+				}	.numpad td {
+						width: 33.333%;
+						padding: 2.5vh 0;
+						border-radius: 1vw;
+						text-align: center;
+						font-size: calc(var(--font-size) + 2vw);
+						transition: background var(--button-transition) linear;
+					}	.numpad td.touched {
+							background-color: var(--button-bg-touched);
+							transition: background 0ms;
+						}
+
+					.svgs {
+						width: calc(var(--font-size) + 2vw);
+						height: calc(var(--font-size) + 2vw);
+					}
+
+				.buttons.del {
+					display: none;
+					float: right;
+					width: auto;
+					height: auto;
+					line-height: normal;
+					padding: 1vh 3vw;
+					margin-top: 6vw;
+					margin-right: 4vw;
+				}
+
+				/* Összesítés
+				---------------------------------------------------------------------------------- */
+
+				/* Felső 2 nyíl */
+				.summary-arrows {
+					position: absolute;
+					top: 2vh;
+					left: 0;
+					width: 80%;
+					height: 3vh;
+					line-height: 3vh;
+					margin-left: 10%;
+				}	.summary-arrows span {
+						opacity: 0;
+						color: var(--orange);
+						font-size: calc(var(--font-size) + 3vw);
+					}
+
+				/* Bevétel: - Kiadás: sor */
+				.summary-full {
+					margin-top: -3vh;
+					margin-left: -2vw;
+					padding: 1.5vh 4vw 0;
+					width: 92vw;
+					height: 5vh;
+					line-height: 5vh;
+					background-color: var(--app-bg);
+				}	.full-outlay { color: var(--outlay-red) }
+					.full-income { color: var(--income-green) }
+
+				.summary-top-line { height: 2px }
+
+				/* Váltható 2 lista */
+				.summary-category-list, .summary-comment-list, .selected-trans-list {
+					position: absolute;
+					width: calc(100% - 4vw);
+					height: 80vh;
+					overflow-y: auto;
+					transition: all var(--page-transition) linear, margin 0ms linear var(--page-transition);
+					visibility: hidden;
+					opacity: 0;
+					margin-top: -110vh;
+				}	.summary-category-list.visible, .summary-comment-list.visible, .selected-trans-list.visible {
+						transition: var(--page-transition) linear;
+						transition-delay: var(--page-transition);
+						transition-property: visibility, opacity;
+						visibility: visible;
+						opacity: initial;
+						margin-top: 0;
+					}
+
+					.selected-trans-list { margin-left: 2vw }
+
+					/* Scrollbar elrejtése */
+					.summary-category-list::-webkit-scrollbar, .summary-comment-list::-webkit-scrollbar, .selected-trans-list::-webkit-scrollbar {
+						width: 0;
+						background: transparent;
+					}
+
+					/* Listákon belüli gomb-sorok */
+					.buttons.summary-categories, .buttons.summary-comments {
+						display: block;
+						width: auto;
+						text-align: left;
+						padding: 0 3vw;
+						height: 4vh;
+						line-height: calc(4vh - 1px);
+						margin: 0;
+						border: none;
+						border-radius: 0;
+						box-sizing: border-box;
+						background-color: transparent;
+					}	.buttons.summary-categories.touched, .buttons.summary-comments.touched {
+							background-color: var(--button-bg-touched);
+						}
+						/* Comment sorok */
+						.buttons.summary-comments {
+							color: var(--comment-color);
+							font-style: italic;
+							letter-spacing: 0.2vw;
+						}
+							/* Jobb-szélső összegek */
+							.summary-amounts, .summary-comment-amount {
+								float: right;
+								font-weight: bold;
+								font-style: initial;
+								letter-spacing: initial;
+								color: #ddd;
+							}
+
+						.buttons.summary-categories.child { padding-left: 5vw }
+						.buttons.summary-categories.parent, .buttons.summary-categories.parent .summary-amounts { color: var(--orange) }
+
+				/* "Megjegyzések szerint" */
+				.buttons.summary-comment-button {
+					position: absolute;
+					bottom: 0.5vh;
+					right: 2vw;
+					width: auto;
+					height: 5vh;
+					line-height: calc(5vh - 4px);
+					padding: 0 3vw;
+				}
+
+				.summary-not-found {
+					text-align: center;
+					margin-top: 10vh;
+				}
+
+				/* Tranzakciók
+				---------------------------------------------------------------------------------- */
+
+				.transactions-list {
+					height: calc(100% - 8vh);
+					overflow-x: hidden;
+					overflow-y: auto;
+				}
+
+					.tra-dates { color: #aaa; font-weight: bold }
+					.tra-parent { color: var(--orange) }
+					.tra-amount { float: right; font-weight: bold }
+					.tra-amount.red { color: var(--outlay-red) }
+					.tra-amount.green { color: var(--income-green) }
+					.tra-comments, .new-comment {
+						color: var(--comment-color);
+						font-style: italic;
+						letter-spacing: 0.2vw;
+					}
+
+				/* Költségvetés
+				---------------------------------------------------------------------------------- */
+
+				.budget-categories, .budget-frame {
+					position: absolute;
+					width: calc(100% - 4vw);
+					transition: all var(--page-transition) linear, top 0ms linear var(--page-transition);
+					top: 100%;
+					bottom: 1vh;
+					visibility: hidden;
+					opacity: 0;
+				}	.budget-categories.visible, .budget-frame.visible {
+						transition: var(--page-transition) linear;
+						transition-delay: var(--page-transition);
+						transition-property: visibility, opacity;
+						visibility: visible;
+						opacity: initial;
+						top: 8.7vh;
+					}	.budget-categories .left-titles.buying { margin-top: 0 }
+
+					.buttons.new-budget-button {
+						position: absolute;
+						width: auto;
+						margin: 0;
+						padding: 0 4vw;
+						bottom: 2vw;
+						right: 2vw;
+					}
+
+					.bud-parent { color: var(--orange) }
+					.bud-limit-parent, .bud-limit-child { float: right; font-weight: bold }
+					.bud-limit-child { color: var(--income-green) }
+					.bud-repeat { color: var(--comment-color) }
+
+					.budget-list {
+						height: calc(100% - 8vh - 2vw);	/* 6.5vh - 2vw az Új gomb teteje */
+						overflow-y: auto;
+					}	/* Zöld fogyásjelző */
+						.budget-list hr {
+							border: 0.5vw inset var(--income-green);
+							float: right;
+							width: 0;
+							margin: 0.5vw 0 0 -0.5vw;
+						}
+
+					/* Scrollbar elrejtése */
+					.transactions-list::-webkit-scrollbar, .budget-list::-webkit-scrollbar {
+						width: 0;
+						background: transparent;
+					}
+
+				/* Beállítások
+				---------------------------------------------------------------------------------- */
+
+				.buttons.setting-options, .buttons.trans-item, .buttons.buds-item {
+					display: block;
+					width: auto;
+					text-align: left;
+					padding: 0 3vw;
+				}	.buttons.trans-item, .buttons.buds-item {
+						height: auto;
+						line-height: normal;
+						padding: 2vw;
+					}
+					.buttons.buds-item { padding-bottom: 3vw }
+					.start-balance-amount {
+						float: right;
+						font-weight: bold;
+					}
+
+				.cbox-div {
+					float: right;
+					width: 2vh;
+					height: 2vh;
+					margin-top: 2vh;
+					border: 0.3vh solid #888;
+					border-radius: 0.5vw;
+					background: transparent;
+				}	.cbox-div.checked { background-color: var(--orange) }
+
+			/* Választók
+			---------------------------------------------------------------------------------- */
+
+			.selectors {
+				position: absolute;
+				display: none;
+				margin: 13vh 20vw 0;
+				padding: 1vh 1vh 0 1vh;
+				width: calc(100% - 46vw);	/* 2x20margin + 2x3padding */
+				border-radius: 1vw;
+				z-index: 1000;
+			}	/* Réteg */
+				.selectors::before {
+					position: absolute;
+					content: "";
+					margin-top: -16vh;		/* 14margin + 2padding */
+					margin-left: -23vw;		/* 20margin + 3padding */
+					width: 100vw;
+					height: 100vh;
+					z-index: -1;
+				}
+
+				.selectors .buttons {
+					border: none;
+					box-sizing: content-box;
+					text-align: left;
+					margin-left: 0;
+					padding: 0 4vw;
+					width: calc(100% - 8vw);	/* 2 x 4padding */
+					line-height: 6.5vh;
+					background-color: #111;
+				}	.selectors .buttons.touched {
+						background-color: #555;
+					}
+
+					.notify-color-selector { margin-top: 9.5vh }
+					.notify-info-selector { margin-top: 17vh }
+					.bg-color-selector { margin-top: 27.5vh }
+					.button-style-selector { margin-top: 35vh }
+					.repeat-selector { margin-top: calc(10vh + 20vw) }
+
+				.color-preview {
+					float: left;
+					width: 36vw;
+					height: 4.5vh;
+					margin-top: 1vh;
+				}
+
+			/* Átlátszó fedőréteg ------------------------------------------------------------------------------------ */
+			.overlay { position:absolute;top:0;left:0;width:100%;height:100%;background-color:transparent;z-index:10000 }
+
+		</style>
+	</head>
+	<body onload="bodyIsLoaded()">
+		<div class="MainBody">
+
+			<!-- Főoldal -->
+			<div class="MainPage visible">
+				<!-- ============================================================================= -->
+				<div class="main-titles">Új kiadás</div>
+				<div class="separators"></div>
+				<div class="left-titles buying">Vásárlás</div><div class="buttons show-outlay buying">Háztartás</div><div class="buttons show-outlay buying">Élelmiszer</div><div class="buttons show-outlay buying">Műszaki</div>
+				<div class="left-titles personal">Személyes</div><div class="buttons show-outlay personal">Megjelenés</div><div class="buttons show-outlay personal">Szabadidő</div><div class="buttons show-outlay personal">Egészség</div>
+				<div class="left-titles home">Otthon</div><div class="buttons show-outlay home">Lakbér</div><div class="buttons show-outlay home">Rezsi</div><div class="buttons show-outlay home">Javítás</div>
+				<div class="left-titles car">Autó</div><div class="buttons show-outlay car">Parkolás</div><div class="buttons show-outlay car">Üzemanyag</div><div class="buttons show-outlay car">Más</div>
+				<!-- ============================================================================= -->
+				<div class="main-titles middle-titles">Új bevétel</div>
+				<div class="separators"></div>
+				<div class="buttons show-income">Munkabér</div><div class="buttons show-income">Ajándék</div><div class="buttons show-income">Jutalék</div>
+				<!-- ============================================================================= -->
+				<div class="main-titles middle-titles">Összesítés</div>
+				<div class="separators"></div>
+				<div class="buttons show-summary week">Heti</div><div class="buttons show-summary month">Havi</div><div class="buttons show-summary year">Éves</div>
+				<!-- ============================================================================= -->
+				<div class="separators"></div>
+				<div class="buttons show-transactions">Tranzakciók</div><div class="buttons show-budget">Költségvetés</div><div class="buttons show-settings">Beállítások</div>
+			</div>
+
+			<!-- Új kiadás -->
+			<div class="OutlayPage">
+				<!-- ============================================================================= -->
+				<div class="main-titles outlay-title"></div>
+				<div class="separators"></div>
+				<div class="start-balance-frames">Add meg a kezdőegyenleget<br><div class="start-balance-input"></div></div>
+				<div class="buttons del">Törlés</div>
+				<div class="new-titles parent-category"></div><span class="operators">/</span><div class="new-params child-category"></div><br>
+				<div class="new-titles amount">Összeg</div><span class="operators">=</span><div class="new-params new-amount">0</div><br>
+				<div class="comment-block"><div class="new-titles">Megjegyzés</div><span class="operators">:</span><label><input type="text" class="new-comment" spellcheck="false" placeholder="Nem kötelező" onfocus="showNumPad(false)" onblur="showNumPad(true)"></label></div>
+				<div class="repeat-block" style="display:none;"><div class="new-titles">Ismétlődés</div><span class="operators">:</span><div class="buttons show-repeat-selector"></div></div>
+				<table class="numpad">
+					<tr><td>1</td><td>2</td><td>3</td></tr>
+					<tr><td>4</td><td>5</td><td>6</td></tr>
+					<tr><td>7</td><td>8</td><td>9</td></tr>
+					<tr>
+						<td class="ok-button"><svg class="svgs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" style="fill:var(--income-green)"><path d="M0 12.116l2.053-1.897c2.401 1.162 3.924 2.045 6.622 3.969 5.073-5.757 8.426-8.678 14.657-12.555l.668 1.536c-5.139 4.484-8.902 9.479-14.321 19.198-3.343-3.936-5.574-6.446-9.679-10.251z"/></svg></td>
+						<td>0</td>
+						<td class="back-button"><svg class="svgs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" style="fill:var(--orange)"><path d="m54 30h-39.899l15.278-14.552c.8-.762.831-2.028.069-2.828-.761-.799-2.027-.831-2.828-.069l-17.448 16.62c-.755.756-1.172 1.76-1.172 2.829 0 1.068.417 2.073 1.207 2.862l17.414 16.586c.387.369.883.552 1.379.552.528 0 1.056-.208 1.449-.621.762-.8.731-2.065-.069-2.827l-15.342-14.552h39.962c1.104 0 2-.896 2-2s-.896-2-2-2z"/></svg></td></tr>
+				</table>
+			</div>
+
+			<!-- Új bevétel -->
+			<div class="IncomePage">
+				<!-- ============================================================================= -->
+				<div class="main-titles income-title"></div>
+				<div class="separators"></div>
+				<div class="start-balance-frames">Add meg a kezdőegyenleget<br><div class="start-balance-input"></div></div>
+				<div class="buttons del">Törlés</div>
+				<div class="new-titles parent-category"></div><span class="operators">/</span><div class="new-params child-category"></div><br>
+				<div class="new-titles">Összeg</div><span class="operators">=</span><div class="new-params new-amount">0</div><br>
+				<div><div class="new-titles">Megjegyzés</div><span class="operators">:</span><label><input type="text" class="new-comment" spellcheck="false" placeholder="Nem kötelező" onfocus="showNumPad(false)" onblur="showNumPad(true)"></label></div>
+				<table class="numpad">
+					<tr><td>1</td><td>2</td><td>3</td></tr>
+					<tr><td>4</td><td>5</td><td>6</td></tr>
+					<tr><td>7</td><td>8</td><td>9</td></tr>
+					<tr>
+						<td class="ok-button"><svg class="svgs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" style="fill:var(--income-green)"><path d="M0 12.116l2.053-1.897c2.401 1.162 3.924 2.045 6.622 3.969 5.073-5.757 8.426-8.678 14.657-12.555l.668 1.536c-5.139 4.484-8.902 9.479-14.321 19.198-3.343-3.936-5.574-6.446-9.679-10.251z"/></svg></td>
+						<td>0</td>
+						<td class="back-button"><svg class="svgs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" style="fill:var(--orange)"><path d="m54 30h-39.899l15.278-14.552c.8-.762.831-2.028.069-2.828-.761-.799-2.027-.831-2.828-.069l-17.448 16.62c-.755.756-1.172 1.76-1.172 2.829 0 1.068.417 2.073 1.207 2.862l17.414 16.586c.387.369.883.552 1.379.552.528 0 1.056-.208 1.449-.621.762-.8.731-2.065-.069-2.827l-15.342-14.552h39.962c1.104 0 2-.896 2-2s-.896-2-2-2z"/></svg></td></tr>
+				</table>
+			</div>
+
+			<!-- Összesítés -->
+			<div class="SummaryPage">
+				<!-- ============================================================================= -->
+				<div class="main-titles summary-title"></div>
+				<div class="separators"></div>
+				<div class="summary-full"><span class="full-income"></span><span class="full-outlay" style="float: right;"></span></div>
+				<div class="summary-top-line"></div>
+				<div class="summary-category-list visible">
+					<!-- Vásárlás -->
+					<div class="buttons summary-categories parent">Vásárlás<span class="summary-amounts sa-1"></span></div>
+					<div class="buttons summary-categories child">Háztartás<span class="summary-amounts sa-2"></span></div>
+					<div class="buttons summary-categories child">Élelmiszer<span class="summary-amounts sa-3"></span></div>
+					<div class="buttons summary-categories child">Műszaki<span class="summary-amounts sa-4"></span></div>
+					<!-- Személyes -->
+					<div class="buttons summary-categories parent">Személyes<span class="summary-amounts sa-5"></span></div>
+					<div class="buttons summary-categories child">Megjelenés<span class="summary-amounts sa-6"></span></div>
+					<div class="buttons summary-categories child">Szabadidő<span class="summary-amounts sa-7"></span></div>
+					<div class="buttons summary-categories child">Egészség<span class="summary-amounts sa-8"></span></div>
+					<!-- Otthon -->
+					<div class="buttons summary-categories parent">Otthon<span class="summary-amounts sa-9"></span></div>
+					<div class="buttons summary-categories child">Lakbér<span class="summary-amounts sa-10"></span></div>
+					<div class="buttons summary-categories child">Rezsi<span class="summary-amounts sa-11"></span></div>
+					<div class="buttons summary-categories child">Javítás<span class="summary-amounts sa-12"></span></div>
+					<!-- Autó -->
+					<div class="buttons summary-categories parent">Autó<span class="summary-amounts sa-13"></span></div>
+					<div class="buttons summary-categories child">Parkolás<span class="summary-amounts sa-14"></span></div>
+					<div class="buttons summary-categories child">Üzemanyag<span class="summary-amounts sa-15"></span></div>
+					<div class="buttons summary-categories child">Más<span class="summary-amounts sa-16"></span></div>
+					<!-- Bevétel -->
+					<div class="buttons summary-categories parent">Bevétel<span class="summary-amounts sa-17"></span></div>
+					<div class="buttons summary-categories child">Munkabér<span class="summary-amounts sa-18"></span></div>
+					<div class="buttons summary-categories child">Ajándék<span class="summary-amounts sa-19"></span></div>
+					<div class="buttons summary-categories child">Jutalék<span class="summary-amounts sa-20"></span></div>
+				</div>
+				<div class="summary-comment-list"></div>
+				<div class="buttons summary-comment-button">Megjegyzések szerint</div>
+				<div class="summary-arrows"><span class="left-arrow" style="float:left;">⇦</span><span class="right-arrow" style="float:right;">⇨</span></div>
+			</div>
+
+			<!-- Tranzakciók -->
+			<div class="TransactionsPage">
+				<!-- ============================================================================= -->
+				<div class="main-titles">Hozzáadott tranzakciók</div>
+				<div class="separators"></div>
+				<div class="transactions-list"></div>
+			</div>
+
+			<!-- Költségvetés -->
+			<div class="BudgetPage">
+				<!-- ============================================================================= -->
+				<div class="main-titles">Költségvetések</div>
+				<div class="separators"></div>
+				<div class="budget-categories">
+					<div class="left-titles buying">Vásárlás</div><div class="buttons show-outlay from-budget buying">Háztartás</div><div class="buttons show-outlay from-budget buying">Élelmiszer</div><div class="buttons show-outlay from-budget buying">Műszaki</div>
+					<div class="left-titles personal">Személyes</div><div class="buttons show-outlay from-budget personal">Megjelenés</div><div class="buttons show-outlay from-budget personal">Szabadidő</div><div class="buttons show-outlay from-budget personal">Egészség</div>
+					<div class="left-titles home">Otthon</div><div class="buttons show-outlay from-budget home">Lakbér</div><div class="buttons show-outlay from-budget home">Rezsi</div><div class="buttons show-outlay from-budget home">Javítás</div>
+					<div class="left-titles car">Autó</div><div class="buttons show-outlay from-budget car">Parkolás</div><div class="buttons show-outlay from-budget car">Üzemanyag</div><div class="buttons show-outlay from-budget car">Más</div>
+				</div>
+				<div class="budget-frame visible">
+					<div class="budget-list"></div>
+					<div class="buttons new-budget-button">Új hozzáadása</div>
+				</div>
+			</div>
+
+			<!-- Beállítások -->
+			<div class="SettingsPage">
+				<!-- ============================================================================= -->
+				<div class="main-titles">Beállítások</div>
+				<div class="separators"></div>
+				<div class="buttons setting-options cb-4-button">Értesítési sáv <span class="notify-state"></span><div class="cbox-div cb-4 checked" style="display:none"></div></div>
+				<div class="buttons setting-options balance-info-selector">Értesítési sáv jobb oldala</div>
+				<hr class="hr-tags">
+				<div class="buttons setting-options change-bg-color">Háttérszín</div>
+				<div class="buttons setting-options change-button-style">Gombok</div>
+				<hr class="hr-tags">
+				<div class="buttons setting-options">Banker App</div>
+			</div>
+
+			<!-- Adott tranzakciók -->
+			<div class="selected-trans-list"></div>
+
+					<!-- Értesítés színe -->
+					<div class="selectors notify-color-selector">
+						<div class="buttons cb-1-button">Automatikus<div class="cbox-div cb-1 checked"></div></div>
+						<div class="buttons cb-2-button">Világos<div class="cbox-div cb-2"></div></div>
+						<div class="buttons cb-3-button">Sötét<div class="cbox-div cb-3"></div></div>
+					</div>
+
+					<!-- Háttérszín -->
+					<div class="selectors bg-color-selector">
+						<div class="buttons cb-5-button"><div class="color-preview" style="background-color: var(--body-bg-5)"></div><div class="cbox-div cb-5 checked"></div></div>
+						<div class="buttons cb-6-button"><div class="color-preview" style="background-color: var(--body-bg-6)"></div><div class="cbox-div cb-6"></div></div>
+						<div class="buttons cb-7-button"><div class="color-preview" style="background-color: var(--body-bg-7)"></div><div class="cbox-div cb-7"></div></div>
+						<div class="buttons cb-8-button"><div class="color-preview" style="background-color: var(--body-bg-8)"></div><div class="cbox-div cb-8"></div></div>
+						<div class="buttons cb-9-button"><div class="color-preview" style="background-color: var(--body-bg-9)"></div><div class="cbox-div cb-9"></div></div>
+						<div class="buttons cb-10-button"><div class="color-preview" style="background-color: var(--body-bg-10)"></div><div class="cbox-div cb-10"></div></div>
+						<div class="buttons cb-11-button"><div class="color-preview" style="background-color: var(--body-bg-11)"></div><div class="cbox-div cb-11"></div></div>
+						<div class="buttons cb-12-button"><div class="color-preview" style="background-color: var(--body-bg-12)"></div><div class="cbox-div cb-12"></div></div>
+					</div>
+
+					<!-- Költségvetés ismétlődés -->
+					<div class="selectors repeat-selector">
+						<div class="buttons cb-13-button">Hétfőnként<div class="cbox-div cb-13"></div></div>
+						<div class="buttons cb-14-button">Hónap 1. napján<div class="cbox-div cb-14 checked"></div></div>
+						<div class="buttons cb-15-button">Hónap 10. napján<div class="cbox-div cb-15"></div></div>
+					</div>
+
+					<!-- Éretsítés infó -->
+					<div class="selectors notify-info-selector">
+						<div class="buttons cb-16-button">Heti kiadás<div class="cbox-div cb-16"></div></div>
+						<div class="buttons cb-17-button">Havi kiadás<div class="cbox-div cb-17 checked"></div></div>
+						<div class="buttons cb-18-button">Éves kiadás<div class="cbox-div cb-18"></div></div>
+					</div>
+
+					<!-- Gomb stílusok -->
+					<div class="selectors button-style-selector">
+						<div class="buttons cb-19-button">Teli<div class="cbox-div cb-19 checked"></div></div>
+						<div class="buttons cb-20-button">Keretes<div class="cbox-div cb-20"></div></div>
+						<div class="buttons cb-21-button">Mindkettő<div class="cbox-div cb-21"></div></div>
+					</div>
+
+			<!-- Fedőréteg -->
+			<div class="overlay"></div>
+
+		</div>
+		<script type="text/javascript" src="components.js"></script>
+		<script type="text/javascript">
+
+			// Globális változók:
+			const g = {
+				isPhone: (typeof ad !== 'undefined'),
+				find: function(t, f) { return (t.search(f) > -1) },
+				//size: function(o) { var i = 0; for (var id in o) i++; return i },
+				dateByTick: function(t) { let d = new Date(parseInt(t)); return (d.getFullYear() + '.' + (d.getMonth() + 1).toDouble() + '.' + d.getDate().toDouble() + ' - ' + d.toLocaleTimeString().replace(/:..((\s.*)|(?!.))/g, '')) },
+				tickByDay: function(tick, day) { return Math.round(tick + (day * 86400000)) },
+				showNotification: function(s) { if (g.isPhone) ad.notificationBar(s, g.data.notify.isDark, g.data.fullBalance, g.data.notify.info, g.data.notify.amount); else if (s) psh([g.data.notify.isDark, "Egyenleg", g.data.fullBalance, g.data.notify.info, g.data.notify.amount]) },
+				class: {
+					elem: function(c) { let ce = document.getElementsByClassName(c)[0]; if (ce) return ce; else { if (!g.isPhone) console.log('! Nincs: ' + c); return {} } },
+					set: function(e, name, bool) { if (typeof e === 'string') e = document.getElementsByClassName(e)[0]; (bool ? ((String(e.className || '').indexOf(name) === -1) ? (e.className += (' ' + name)) : null) : (e.className = e.className.replace(' ' + name, ''))) },
+					get: function(e, name) { if (typeof e === 'string') e = document.getElementsByClassName(e)[0]; return (String(e.className || '').indexOf(name) > -1) }
+				},
+				data: {
+					notify: { isDark: false, isVisible: false, info: '', amount: '' },
+					startBalance: '',
+					fullBalance: '',
+					tra: {},
+					bud: {},
+					opt: {}
+				},
+				ticks: { monday: 0, month: 0, ten: 0, year: 0, item: '' },
+				summary: { startWeek: 0, endWeek: 0, month: 0, year: 0, sw: 0, ew: 0, mt: 0, yr: 0, period: '', category: true, lastItem: [] },
+				back: { transItem: false, sbItem: false, budgetItem: false, budgetButton: false, summaryCatItem: false, summaryComItem: false },
+				touch: { leave: false, direction: '', posX: 0, posY: 0, limitX: 0, limitY: 0 },
+				delay: { page: 0, button: 0 },
+				button: { div: {}, bg: '', border: '', style: 'cb-19' },
+				buttons: [],
+				timers: {},
+				bodyHeight: 0,
+				reloading: false
+			};
+
+			// Kezdőegyenleg lekérése:
+			function getStartBalance() {
+				g.data.startBalance = (g.data.opt['Kezdőegyenleg'] || '0');
+				// Ha nincs az adatban, akkor a Balansz ablak megjelítése:
+				if (g.data.startBalance === '0') {
+					setCssValue('.start-balance-frames', 'display', 'block');
+					g.class.elem('outlay-title').innerHTML = 'Kezdőegyenleg szerkesztése';
+					g.class.elem('income-title').innerHTML = 'Kezdőegyenleg szerkesztése';
+				}
+				g.class.elem('start-balance-input active').innerHTML = g.data.startBalance;
+				g.class.elem('start-balance-amount').innerHTML = g.data.startBalance;
+			}
+
+			// Kezdőegyenleg megadása:
+			function setStartBalance(p) {
+				if (p === true) {
+					g.class.elem('outlay-title').innerHTML = 'Kezdőegyenleg szerkesztése';
+					setCssValue('.start-balance-frames', 'display', 'block');
+					activateOutlayTags(true);
+					showPage('OutlayPage');
+				}
+				else {
+					g.data.startBalance = p;
+					g.data.opt['Kezdőegyenleg'] = p;
+				}
+				g.class.elem('start-balance-input active').innerHTML = g.data.startBalance;
+				g.class.elem('start-balance-amount').innerHTML = g.data.startBalance;
+			}
+
+			// Kiadás vagy Bevétel oldalon active class beírása:
+			function activateOutlayTags(bool) {
+				let oltags = g.class.elem('OutlayPage').getElementsByTagName('*');
+				for (let oltag of oltags) (g.find(String(oltag.tagName), /DIV|TABLE|TD|INPUT/) ? g.class.set(oltag, 'active', bool) : null);
+				let ictags = g.class.elem('IncomePage').getElementsByTagName('*');
+				for (let ictag of ictags) (g.find(String(ictag.tagName), /DIV|TABLE|TD|INPUT/) ? g.class.set(ictag, 'active', !bool) : null);
+			}
+
+			// Értesítési szín váltás:
+			function notifyColorSelector(id, overwrite) {
+				for (let i = 1; i <= 3; i++) {
+					g.class.set('cb-' + i, 'checked', false);
+					if (overwrite) delete g.data.opt['cb-' + i];
+				}
+				// Alapértelmezett:
+				if ((id === 'cb-1') && g.isPhone) g.data.notify.isDark = ad.isDark();
+				// Világos:
+				if (id === 'cb-2') g.data.notify.isDark = false;
+				// Sötét:
+				if (id === 'cb-3') g.data.notify.isDark = true;
+				// Adott id csekkolása:
+				g.class.set(id, 'checked', true);
+				if (overwrite) g.data.opt[id] = 'true';
+			}
+
+			// Háttérszín váltás:
+			function bgColorSelector(id, overwrite) {
+				for (let i = 5; i <= 12; i++) {
+					g.class.set('cb-' + i, 'checked', false);
+					if (overwrite) delete g.data.opt['cb-' + i];
+				}
+				let index = id.split('-')[1], even = (index % 2 === 0), bg1, bg2, light = getCssValue(':root', '--button-bg-light'), dark = getCssValue(':root', '--button-bg-dark');
+				// Felső háttérszín:
+				bg1 = getCssValue(':root', '--body-bg-' + index);
+				// Alsó, párosnál 111 else 333:
+				bg2 = (even ? ((index === '6') ? '#222' : '#111') : '#333');
+				// Gombok:
+				g.button.bg = (even ? light : dark);
+				g.button.border = (even ? 'rgba(200,200,200,0.3)' : dark);
+				// CSS:
+				setCssValue('.MainBody', 'background', 'linear-gradient(#000 0.1%, #222 1%, #222 7%, ' + bg1 + ' 8%, ' + bg2 + ' 90%)');
+				setCssValue('.buttons', 'background-color', ((g.button.style !== 'cb-20') ? g.button.bg : 'transparent'));
+				setCssValue('.buttons', 'border', '2px solid ' + ((g.button.style !== 'cb-19') ? g.button.border : 'transparent'));
+				setCssValue('.numpad td', 'background-color', ((g.button.style !== 'cb-20') ? g.button.bg : 'transparent'));
+				setCssValue('.numpad td', 'border', '2px solid ' + ((g.button.style !== 'cb-19') ? g.button.border : 'transparent'));
+				setCssValue('.new-comment', 'background-color', ((g.button.style !== 'cb-20') ? g.button.bg : 'transparent'));
+				setCssValue('.new-comment', 'border', '2px solid ' + ((g.button.style !== 'cb-19') ? g.button.border : 'transparent'));
+				setCssValue('.buttons.summary-categories, .buttons.summary-comments', 'border-bottom', '2px solid ' + g.button.border);
+				setCssValue('.summary-top-line', 'background-color', g.button.bg);
+				setCssValue('.selectors', 'background-color', g.button.bg);
+				setCssValue('.hr-tags', 'border-color', g.button.border);
+				// Adott id csekkolása:
+				g.class.set(id, 'checked', true);
+				if (overwrite) g.data.opt[id] = 'true';
+			}
+
+			// Gomb-stílus váltás:
+			function buttonStyleSelector(id, overwrite) {
+				for (let i = 19; i <= 21; i++) {
+					g.class.set('cb-' + i, 'checked', false);
+					if (overwrite) delete g.data.opt['cb-' + i];
+				}
+				g.button.style = id;
+				setCssValue('.buttons', 'background-color', ((g.button.style !== 'cb-20') ? g.button.bg : 'transparent'));
+				setCssValue('.buttons', 'border', '2px solid ' + ((g.button.style !== 'cb-19') ? g.button.border : 'transparent'));
+				setCssValue('.numpad td', 'background-color', ((g.button.style !== 'cb-20') ? g.button.bg : 'transparent'));
+				setCssValue('.numpad td', 'border', '2px solid ' + ((g.button.style !== 'cb-19') ? g.button.border : 'transparent'));
+				setCssValue('.new-comment', 'background-color', ((g.button.style !== 'cb-20') ? g.button.bg : 'transparent'));
+				setCssValue('.new-comment', 'border', '2px solid ' + ((g.button.style !== 'cb-19') ? g.button.border : 'transparent'));
+				// Adott id csekkolása:
+				g.class.set(id, 'checked', true);
+				if (overwrite) g.data.opt[id] = 'true';
+			}
+
+			// Költségvetés ismétlődés:
+			function budgetRepeatSelector(id) {
+				let selbtn = g.class.elem('show-repeat-selector');
+				for (let i = 13; i <= 15; i++) {
+					// Ha nincs id, akkor alapértelmezett a html-ből:
+					if (!id) { if (g.class.get(g.class.elem('cb-' + i), 'checked')) selbtn.innerHTML = g.class.elem('cb-' + i + '-button').innerHTML.split('<div')[0]; }
+					// Ha van, akkor az összes uncsekkolása:
+					else g.class.set('cb-' + i, 'checked', false);
+				}
+				if (id) {
+					// Gomb írás:
+					selbtn.innerHTML = g.class.elem(id + '-button').innerHTML.split('<div')[0];
+					// Adott id csekkolása:
+					g.class.set(id, 'checked', true);
+				}
+			}
+
+			// Értesítés infó mód:
+			function notifyInfoSelector(id, overwrite) {
+				for (let i = 16; i <= 18; i++) {
+					g.class.set('cb-' + i, 'checked', false);
+					if (overwrite) delete g.data.opt['cb-' + i];
+				}
+				if (id === 'cb-16') g.data.notify.info = 'Heti kiadás';
+				if (id === 'cb-17') g.data.notify.info = 'Havi kiadás';
+				if (id === 'cb-18') g.data.notify.info = 'Éves kiadás';
+				// Adott id csekkolása:
+				g.class.set(id, 'checked', true);
+				if (overwrite) g.data.opt[id] = 'true';
+			}
+
+			// Egyenleg számítása:
+			function calcBalance() {
+				g.data.fullBalance = g.data.startBalance.fromAmount();
+				g.data.notify.amount = 0;
+				// Tranz-összegek hozzáadása:
+				let values, amount, income, tick;
+				for (tick in g.data.tra) {
+					values = g.data.tra[tick];
+					amount = values[2].fromAmount();
+					income = (values[0] === 'Bevétel');
+					// Egyenleg:
+					g.data.fullBalance += (income ? amount : -amount);
+					// Infó összeg:
+					if (!income) {
+						if (g.find(g.data.notify.info, 'Heti') && (parseInt(tick) > g.ticks.monday)) g.data.notify.amount -= amount;
+						if (g.find(g.data.notify.info, 'Havi') && (parseInt(tick) > g.ticks.month)) g.data.notify.amount -= amount;
+						if (g.find(g.data.notify.info, 'Éves') && (parseInt(tick) > g.ticks.year)) g.data.notify.amount -= amount;
+					}
+				}
+				// String és tagolás:
+				g.data.fullBalance = g.data.fullBalance.toAmount();
+				g.data.notify.amount = g.data.notify.amount.toAmount();
+				// Értesítés, ha kell:
+				g.showNotification(g.data.notify.isVisible);
+			}
+
+			// Tranzakció html összeállítása:
+			// 0: parent
+			// 1: child
+			// 2: amount
+			// 3: comment
+			function createTransHtmlItem(tick, values) {
+				return ('<div class="buttons trans-item ' + tick + '"><span class="tra-dates">' + g.dateByTick(tick) + '</span><br><span class="tra-parent">' + values[0] + '</span><span class="operators">/</span><span>' + values[1] + '</span><span class="tra-amount ' + ((values[0] === 'Bevétel') ? 'green' : 'red') + '">' + ((values[0] === 'Bevétel') ? '' : '-') + values[2] + '</span><br><span class="tra-comments">' + values[3] + '</span></div>');
+			}
+
+			// Költségvetés html összeállítása:
+			// 0: parent
+			// 1: child
+			// 2: limit
+			// 3: repeat
+			function createBudgetHtmlItem(tick, values) {
+				let used = 0, percent, width, color, html = '', t_ck;
+				for (t_ck in g.data.tra) {
+					let tra = g.data.tra[t_ck];
+					// Budget child kategória egyezik a tranzakcióéval:
+					if (values[1] === tra[1]) {
+						let amount = tra[2].fromAmount();
+						// Összeadások:
+						if ((values[3] === 'Hétfőnként') && (parseInt(t_ck) > g.ticks.monday)) used += amount;
+						else if ((values[3] === 'Hónap 1. napján') && (parseInt(t_ck) > g.ticks.month)) used += amount;
+						else if ((values[3] === 'Hónap 10. napján') && (parseInt(t_ck) > g.ticks.ten)) used += amount;
+					}
+				}
+				percent = Math.floor((used / values[2].fromAmount()) * 100);
+				width = ((percent > 100) ? 100 : percent);
+				color = ((width === 100) ? 'var(--outlay-red)' : 'var(--income-green)');
+				html += ('<div class="buttons buds-item ' + tick + '">');
+				html += ('<span class="bud-parent">' + values[0] + '</span><span class="operators">/</span><span>' + values[1] + '</span><span class="bud-limit-parent">' + values[2] + '</span><br>');
+				html += ('<span class="bud-repeat">' + values[3] + '</span><span class="bud-limit-child" style="color: ' + color + '">' + used.toAmount() + '</span><br>');
+				html += ('<hr style="width: ' + width + '%; border-color: ' + color + '"></div>');
+				return html;
+			}
+
+			// Adott típushoz tartozó tételek kiolvasása és html készítés:
+			// type : 'tra' 'bud'
+			function createHtmlList(type) {
+				let tick, ticks = [];
+				// Object tickek sorba rendezése:
+				for (tick in g.data[type]) ticks.push(tick);
+				//-------------------------------------------------------------------------------------------------
+				let full = (ticks.length - 1), ulimit = (full - 99), limit = ((ulimit > 0) ? ulimit : 0), html = '', i, values;
+				// tra:1586704552436=Vásárlás#Élelmiszer#12 335#comment\n
+				// bud:1586704552436=Vásárlás#Élelmiszer#60 000#Hónap 1. napján\n
+				// Csak az utolsó 100 tranz:
+				for (i = full; i >= limit; i--) {
+					tick = ticks[i];
+					values = g.data[type][tick];
+					html += ((type === 'tra') ? createTransHtmlItem(tick, values) : createBudgetHtmlItem(tick, values));
+				}
+				// Integrálás:
+				if (type === 'tra') {
+					html += '<div class="buttons setting-options start-balance-item">Kezdőegyenleg<span class="start-balance-amount"></span></div>';
+					g.class.elem('transactions-list').innerHTML = html;
+					getStartBalance();
+				}
+				else g.class.elem('budget-list').innerHTML = html;
+				// Globáls gombok:
+				oneTimer('add-buttons', function() {
+					g.buttons = []; Array.from(document.getElementsByClassName('buttons')).forEach(function(button) { g.buttons.push(button) });
+				});
+			}
+
+			/*-----------------------------------------------------------------------------*\
+			|	Vissza-gomb nyomásakor														|
+			|																				|
+			|																				|
+			|===============================================================================|
+			\*=============================================================================*/
+			function onBackButton() {
+				let rtrn = false;
+				// Újranyitás:
+				if (g.reloading && g.isPhone) { setTimeout(function() { ad.reloadApp() }, 20); return null }
+				// A főoldalon kilépés:
+				if (g.class.get(g.class.elem('MainPage'), 'visible') && g.isPhone) { rtrn = true; setTimeout(function() { ad.closeApp() }, 20) }
+				// Ha látszik az értesítés választó, akkor elrejtés:
+				if (g.class.elem('notify-color-selector').style.display === 'block') { rtrn = true; g.class.elem('notify-color-selector').style.display = 'none' }
+				// Ha látszik a szín választó, akkor elrejtés:
+				if (g.class.elem('bg-color-selector').style.display === 'block') { rtrn = true; g.class.elem('bg-color-selector').style.display = 'none' }
+				// Ha látszik a gombstílus választó, akkorelrejtés:
+				if (g.class.elem('button-style-selector').style.display === 'block') { rtrn = true; g.class.elem('button-style-selector').style.display = 'none' }
+				// Ha látszik az ismétlődés választó, akkor elrejtés:
+				if (g.class.elem('repeat-selector').style.display === 'block') { rtrn = true; g.class.elem('repeat-selector').style.display = 'none' }
+				// Ha látszik az ismétlődés választó, akkor elrejtés:
+				if (g.class.elem('notify-info-selector').style.display === 'block') { rtrn = true; g.class.elem('notify-info-selector').style.display = 'none' }
+				// Kilépés:
+				if (rtrn) return null;
+				// Fedőréteg:
+				g.class.elem('overlay').style.display = 'block';
+				// Összesítés oldalon:
+				if (g.back.summaryCatItem || g.back.summaryComItem) {
+					if (g.back.transItem) {
+						calcSummary(g.summary.lastItem, false);
+						g.class.set('summary-category-list', 'visible', false);
+						g.class.set('summary-comment-list', 'visible', false);
+						g.class.set('selected-trans-list', 'visible', true);
+						showPage('SummaryPage');
+					}
+					else {
+						g.class.set('summary-category-list', 'visible', g.back.summaryCatItem);
+						g.class.set('summary-comment-list', 'visible', g.back.summaryComItem);
+						g.class.set('selected-trans-list', 'visible', false);
+						g.class.elem('selected-trans-list').style.height = '';
+						g.class.elem('selected-trans-list').style.marginTop = '';
+						g.back.summaryComItem = g.back.summaryCatItem = false;
+					}
+				}
+				// Visszalépés a Tranzakciók oldalra:
+				else if (g.back.transItem) showPage('TransactionsPage');
+				// Visszalépés a Költségvetés oldalra:
+				else if (g.back.budgetButton || g.back.budgetItem) {
+					g.class.set('budget-frame', 'visible', true);
+					g.class.set('budget-categories', 'visible', false);
+					showPage('BudgetPage');
+					g.back.budgetButton = false;
+				}
+				// Visszalépés a Tranzakciók oldalra:
+				else if (g.back.sbItem) {
+					showPage('TransactionsPage');
+					g.back.sbItem = false;
+				}
+				// Visszalépés a Főoldalra:
+				else showPage('MainPage');
+				// A transition végén:
+				setTimeout(function() {
+					// Reset:
+					g.class.elem('new-amount active').innerHTML = '0';
+					g.class.elem('new-comment active').value = '';
+					if (g.back.transItem) {
+						g.class.elem('buttons del active').style.display = 'none';
+						g.back.transItem = false;
+					}
+					if (g.back.budgetItem) {
+						g.class.elem('new-titles amount').innerHTML = 'Összeg';
+						g.class.elem('comment-block').style.display = 'block';
+						g.class.elem('repeat-block').style.display = 'none';
+						g.class.elem('buttons del active').style.display = 'none';
+						g.back.budgetItem = false;
+					}
+					if (getCssValue('.start-balance-frames', 'display') === 'block') setCssValue('.start-balance-frames', 'display', 'none');
+					g.class.elem('overlay').style.display = 'none';
+				}, (g.delay.page * 2));
+			}
+
+			/*-----------------------------------------------------------------------------*\
+			|	Gombok érintésekor															|
+			|																				|
+			|																				|
+			|===============================================================================|
+			\*=============================================================================*/
+			function bodyTouchDown(target, posX, posY) {
+				g.reloading = true;
+				// Érintés reset:
+				g.touch.direction = '';
+				g.touch.leave = false;
+				g.touch.posX = posX;
+				g.touch.posY = posY;
+				// Ha gombra nyomok:
+				if (g.class.get(target.parentElement, 'buttons ')) g.button.div = target.parentElement;
+				else if (g.class.get(target, 'buttons ')) g.button.div = target;
+				else return null;
+				// Class nevek visszaállítása:
+				g.buttons.forEach(function(button) { g.class.set(button, 'touched', false) });
+				// Aktuális gomb:
+				g.class.set(g.button.div, 'touched', true);
+				// Ha lehúztam az ujjam, akkor már nem kell a false:
+				setTimeout(function() {
+					if (!g.touch.leave) g.class.set(g.button.div, 'touched', false);
+					g.button.div = {};
+				}, g.delay.button);
+			}
+
+			/*-----------------------------------------------------------------------------*\
+			|	Gombok mozgatásakor															|
+			|																				|
+			|																				|
+			|===============================================================================|
+			\*=============================================================================*/
+			function bodyTouchMove(posX, posY) {
+				// Vízszintes lapozáshoz:
+				//------------------------------------------------------------------------------------->
+				let pos, opa;
+				if (posX > (g.touch.posX + g.touch.limitX)) {
+					g.touch.direction = 'Right';
+					pos = g.touch.limitX;
+				} else if (posX < (g.touch.posX - g.touch.limitX)) {
+					g.touch.direction = 'Left';
+					pos = -g.touch.limitX;
+				} else {
+					g.touch.direction = '';
+					pos = (posX - g.touch.posX);
+				}
+				// Csak az Összesítés oldalon:
+				if (g.class.get('SummaryPage', 'visible')) {
+					// Opacity: 0 - 1:
+					opa = (pos / g.touch.limitX);
+					// Ha jobbra húzom:
+					if (opa > 0) {
+						g.class.elem('left-arrow').style.opacity = String(opa);
+						g.class.elem('right-arrow').style.opacity = '0';
+					}
+					else {
+						g.class.elem('left-arrow').style.opacity = '0';
+						g.class.elem('right-arrow').style.opacity = String(-opa);
+					}
+				}
+				// Ha van valamelyik irány:
+				if ((g.touch.direction !== '') && !g.touch.leave) {
+					g.buttons.forEach(function(button) { g.class.set(button, 'touched', false) });
+					g.touch.leave = true;
+				}
+				// Függőleges görgetéshez:
+				//------------------------------------------------------------------------------------->
+				if (((posY < (g.touch.posY - g.touch.limitY)) || (posY > (g.touch.posY + g.touch.limitY))) && !g.touch.leave) {
+					g.buttons.forEach(function(button) { g.class.set(button, 'touched', false) });
+					g.touch.leave = true;
+				}
+			}
+
+			/*-----------------------------------------------------------------------------*\
+			|	Gombok felengedésekor														|
+			|																				|
+			|																				|
+			|===============================================================================|
+			\*=============================================================================*/
+			function bodyTouchUp() {
+				g.reloading = false;
+				// Nyilak elrejtése:
+				if (g.class.get('SummaryPage', 'visible')) setTimeout(function() {
+					g.class.elem('left-arrow').style.opacity = '0';
+					g.class.elem('right-arrow').style.opacity = '0';
+				}, 50);
+				// Ha elhúztam az összesítés oldalt:
+				if (g.touch.direction !== '') return calcSummary(g.summary.lastItem, true);
+				// Ha lehúztam az ujjam a gombról:
+				if (g.touch.leave) return null;
+				// Ha megszűnt az érintés:
+				if (!g.class.get(g.button.div, 'touched')) return null;
+				// Fedőréteg:
+				g.class.elem('overlay').style.display = 'block';
+				// Név keresése a class-ban:
+				function buttonClass(c) { return (g.button.div.className.indexOf(c) > -1) }
+
+				// --> Új Kiadás:
+				// ________________________________________________________________________
+				if (buttonClass('show-outlay')) {
+					activateOutlayTags(true);
+					// Új tick:
+					g.ticks.item = new Date().getTime().toString();
+					// Főcím megadása:
+					g.class.elem('outlay-title').innerHTML = 'Új kiadás hozzáadása';
+					let parent = g.class.elem('parent-category active');
+					// Vásárlás:
+					if (buttonClass('buying')) parent.innerHTML = g.class.elem('left-titles buying').innerHTML;
+					// Személyes:
+					if (buttonClass('personal')) parent.innerHTML = g.class.elem('left-titles personal').innerHTML;
+					// Otthon:
+					if (buttonClass('home')) parent.innerHTML = g.class.elem('left-titles home').innerHTML;
+					// Autó:
+					if (buttonClass('car')) parent.innerHTML = g.class.elem('left-titles car').innerHTML;
+					// Al kategória:
+					g.class.elem('child-category active').innerHTML = g.button.div.innerHTML;
+					// Ha a költségvetésről jöttem:
+					if (buttonClass('from-budget')) {
+						g.back.budgetItem = true;
+						g.class.elem('outlay-title').innerHTML = 'Költségvetés hozzáadása';
+						g.class.elem('new-titles amount').innerHTML = 'Összeghatár';
+						g.class.elem('comment-block').style.display = 'none';
+						g.class.elem('repeat-block').style.display = 'inline-block';
+					}
+					getStartBalance();
+					// Kezdőegyenleg ellenőrzése:
+					showPage('OutlayPage');
+				}
+
+				// --> Új Bevétel:
+				// ________________________________________________________________________
+				if (buttonClass('show-income')) {
+					activateOutlayTags(false);
+					g.ticks.item = new Date().getTime().toString();
+					g.class.elem('income-title').innerHTML = 'Új bevétel hozzáadása';
+					g.class.elem('parent-category active').innerHTML = 'Bevétel';
+					g.class.elem('child-category active').innerHTML = g.button.div.innerHTML;
+					getStartBalance();
+					showPage('IncomePage');
+				}
+
+				// --> Összesítés:
+				// ________________________________________________________________________
+				if (buttonClass('show-summary')) {
+					g.summary.sw = g.summary.startWeek;
+					g.summary.ew = g.summary.endWeek;
+					g.summary.mt = g.summary.month;
+					g.summary.yr = g.summary.year;
+					showPage('SummaryPage');
+				}
+
+					// --> Heti:
+					// ______________________________________
+					if (buttonClass('show-summary week')) g.summary.period = 'week';
+
+					// --> Havi:
+					// ______________________________________
+					if (buttonClass('show-summary month')) g.summary.period = 'month';
+
+					// --> Éves:
+					// ______________________________________
+					if (buttonClass('show-summary year')) g.summary.period = 'year';
+
+					// --> Összesítés lefuttatása:
+					// ______________________________________
+					if (buttonClass('show-summary')) calcSummary();
+
+						// Megjegyzés szerint:
+						if (buttonClass('summary-comment-button')) {
+							g.back.summaryCatItem = g.back.summaryComItem = false;
+							g.class.elem('summary-comment-button').innerHTML = ((g.summary.category ? 'Kategóriák' : 'Megjegyzések') + ' szerint');
+							g.class.set('selected-trans-list', 'visible', false);
+							g.class.set('summary-category-list', 'visible', !g.summary.category);
+							g.class.set('summary-comment-list', 'visible', g.summary.category);
+							g.summary.category = !g.summary.category;
+						}
+
+						// Tranzok kilistázása kategóriák szerint:
+						if (buttonClass('summary-categories')) {
+							g.back.summaryCatItem = true;
+							g.class.elem('selected-trans-list').style.height = '79vh';
+							g.class.elem('selected-trans-list').style.marginTop = '13.5vh';
+							g.class.set('summary-category-list', 'visible', false);
+							g.class.set('summary-comment-list', 'visible', false);
+							g.class.set('selected-trans-list', 'visible', true);
+							g.summary.lastItem = ['cat', g.button.div.innerHTML.split('<span')[0]];
+							calcSummary(g.summary.lastItem, false);
+						}
+
+						// Tranzok kilistázása megjegyzések szerint:
+						if (buttonClass('summary-comments')) {
+							g.back.summaryComItem = true;
+							g.class.elem('selected-trans-list').style.height = '79vh';
+							g.class.elem('selected-trans-list').style.marginTop = '13.5vh';
+							g.class.set('summary-category-list', 'visible', false);
+							g.class.set('summary-comment-list', 'visible', false);
+							g.class.set('selected-trans-list', 'visible', true);
+							g.summary.lastItem = ['com', g.button.div.innerHTML.split('<span')[0]];
+							calcSummary(g.summary.lastItem, false);
+						}
+
+				// --> Tranzakciók:
+				// ________________________________________________________________________
+				if (buttonClass('show-transactions')) showPage('TransactionsPage');
+
+					// --> Tranzakció szerkesztése:
+					// ______________________________________
+					if (buttonClass('trans-item')) {
+						g.class.set('selected-trans-list', 'visible', false);
+						let values, income;
+						g.back.transItem = true;
+						g.ticks.item = g.button.div.className.split('trans-item ')[1].split(' touched')[0];
+						values = g.data.tra[g.ticks.item];
+						income = (values[0] === 'Bevétel');
+						// Tag-ek aktiválása:
+						activateOutlayTags(!income);
+						// Törlés gomb:
+						g.class.elem('buttons del active').style.display = 'block';
+						// Adatok beírása:
+						g.class.elem('parent-category active').innerHTML = values[0];
+						g.class.elem('child-category active').innerHTML = values[1];
+						g.class.elem('new-amount active').innerHTML = values[2];
+						g.class.elem('new-comment active').value = values[3];
+						// Főcím átírása:
+						g.class.elem((income ? 'income' : 'outlay') + '-title').innerHTML = ((income ? 'Bevétel' : 'Kiadás') + ' szerkesztése');
+						// Bevétel / Kiadás oldal megnyitása:
+						showPage(income ? 'IncomePage' : 'OutlayPage');
+					}
+
+					// --> Kezdőegyenleg szerkesztése:
+					// ______________________________________
+					if (buttonClass('start-balance-item')) {
+						g.back.sbItem = true;
+						setStartBalance(true);
+					}
+
+				// --> Költségvetés:
+				// ________________________________________________________________________
+				if (buttonClass('show-budget')) showPage('BudgetPage');
+
+					// --> Új hozzáadása:
+					// ______________________________________
+					if (buttonClass('new-budget-button')) {
+						g.back.budgetButton = true;
+						g.class.set('budget-frame', 'visible', false);
+						g.class.set('budget-categories', 'visible', true);
+						budgetRepeatSelector();
+					}
+
+					// --> Ismétlődés kiválasztása:
+					// ______________________________________
+					if (buttonClass('show-repeat-selector')) g.class.elem('repeat-selector').style.display = 'block';
+
+					// --> Költségvetés szerkesztése:
+					// ______________________________________
+					if (buttonClass('buds-item')) {
+						g.back.budgetItem = true;
+						g.ticks.item = g.button.div.className.split('buds-item ')[1].split(' touched')[0];
+						let values = g.data.bud[g.ticks.item];
+						// Tag-ek aktiválása:
+						activateOutlayTags(true);
+						// Törlés gomb:
+						g.class.elem('buttons del active').style.display = 'block';
+						// Adatok beírása:
+						g.class.elem('parent-category active').innerHTML = values[0];
+						g.class.elem('child-category active').innerHTML = values[1];
+						g.class.elem('new-amount active').innerHTML = values[2];
+						g.class.elem('show-repeat-selector').innerHTML = values[3];
+						// Kiadás oldal beállítása:
+						g.class.elem('outlay-title').innerHTML = 'Költségvetés szerkesztése';
+						g.class.elem('new-titles amount').innerHTML = 'Összeghatár';
+						g.class.elem('comment-block').style.display = 'none';
+						g.class.elem('repeat-block').style.display = 'inline-block';
+						budgetRepeatSelector((values[3] === 'Hétfőnként') ? 'cb-13' : ((values[3] === 'Hónap 1. napján') ? 'cb-14' : ((values[3] === 'Hónap 10. napján') ? 'cb-15' : null)));
+						showPage('OutlayPage');
+					}
+
+				// --> Beállítások:
+				// ________________________________________________________________________
+				if (buttonClass('show-settings')) showPage('SettingsPage');
+
+					// --> Értesítés info:
+					// ______________________________________
+					if (buttonClass('balance-info-selector')) g.class.elem('notify-info-selector').style.display = 'block';
+
+					// --> Szín választó:
+					// ______________________________________
+					if (buttonClass('change-bg-color')) g.class.elem('bg-color-selector').style.display = 'block';
+
+					// --> Gombok:
+					// ______________________________________
+					if (buttonClass('change-button-style')) g.class.elem('button-style-selector').style.display = 'block';
+
+				// --> CheckBox:
+				// ________________________________________________________________________
+				if (buttonClass('cb')) {
+					let id = ('cb-' + g.button.div.className.split('cb-')[1].split('-button')[0]), cboxdiv = g.class.elem(id), state = !g.class.get(cboxdiv, 'checked');
+					// Értesítési sáv megjelenítése:
+					if (id === 'cb-4') {
+						// Kijelöléskor a módok megjelenítése:
+						if (state) g.class.elem('notify-color-selector').style.display = 'block';
+						// Értesítési sáv elrjtése:
+						else {
+							g.showNotification(false);
+							g.class.set('cb-4', 'checked', false);
+							g.data.notify.isVisible = false;
+							g.data.opt['cb-4'] = 'false';
+							g.class.elem('notify-state').innerHTML = 'megjelenítése';
+						}
+					}
+					// Értesitési szín beállítása:
+					else if (g.find(id, /\b(1|2|3)\b/)) {
+						notifyColorSelector(id, true);
+						g.showNotification(true);
+						g.class.set('cb-4', 'checked', true);
+						g.data.notify.isVisible = true;
+						g.data.opt['cb-4'] = 'true';
+						g.class.elem('notify-state').innerHTML = 'elrejtése';
+						setTimeout(function() { g.class.elem('notify-color-selector').style.display = 'none' }, g.delay.button);
+					}
+					// Háttérszínek:
+					else if (g.find(id, /\b(5|6|7|8|9|10|11|12)\b/)) {
+						bgColorSelector(id, true);
+						setTimeout(function() { g.class.elem('bg-color-selector').style.display = 'none' }, g.delay.button);
+					}
+					// Budget ismétlődés:
+					else if (g.find(id, /\b(13|14|15)\b/)) {
+						budgetRepeatSelector(id);
+						setTimeout(function() { g.class.elem('repeat-selector').style.display = 'none' }, g.delay.button);
+					}
+					// Értesítés jobb-adat:
+					else if (g.find(id, /\b(16|17|18)\b/)) {
+						notifyInfoSelector(id, true);
+						calcBalance();
+						setTimeout(function() { g.class.elem('notify-info-selector').style.display = 'none' }, g.delay.button);
+					}
+					// Gomb-stílus:
+					else if (g.find(id, /\b(19|20|21)\b/)) {
+						buttonStyleSelector(id, true);
+						setTimeout(function() { g.class.elem('button-style-selector').style.display = 'none' }, g.delay.button);
+					}
+					// Más:
+					else {
+						g.class.set(cboxdiv, 'checked', state);
+					}
+					setDataToString();
+				}
+
+				// --> Tranz / Budget törlés:
+				// ________________________________________________________________________
+				if (buttonClass('del')) tdTouchDown(g.class.elem('ok-button active'), true);
+
+				// Class nevek visszaállítása:
+				g.buttons.forEach(function(button) { g.class.set(button, 'touched', false) });
+				setTimeout(function() { g.class.elem('overlay').style.display = 'none' }, (g.delay.page * 2));
+			}
+
+			/*-----------------------------------------------------------------------------*\
+			|	NumPad érintéskor															|
+			|																				|
+			|																				|
+			|===============================================================================|
+			\*=============================================================================*/
+			function tdTouchDown(td, del) {
+				// Érintés hatáshoz:
+				if (del === undefined) {
+					g.class.set(td, 'touched', true);
+					setTimeout(function() { g.class.set(td, 'touched', false) }, 20);
+				}
+				// Funkciók:
+				let num = parseInt(td.innerHTML), setSb = (g.back.sbItem || (g.data.startBalance === '0')), amountElem = g.class.elem(setSb ? 'start-balance-input active' : 'new-amount active');
+				// Számok:
+				//----------------------------------------------------------->
+				if (num < 10) {
+					let am = String(amountElem.innerHTML.fromAmount());		// 123456
+					if (am === '0') am = '';
+					amountElem.innerHTML = (am + num);
+					amountElem.innerHTML = amountElem.innerHTML.toAmount();	// 123 456
+				}
+				// Kilépés, ha 0 az összeg:
+				if (amountElem.innerHTML === '0') return null;
+				// Ok gomb:
+				//----------------------------------------------------------->
+				if (g.class.get(td, 'ok')) {
+					// Kezdőegyenleg szerkesztése:
+					if (setSb) setStartBalance(amountElem.innerHTML);
+					else {
+						let parent = g.class.elem('parent-category active').innerHTML,
+							child = g.class.elem('child-category active').innerHTML,
+							amount = g.class.elem('new-amount active').innerHTML,
+							comment = g.class.elem('new-comment active').value,
+							repeat = g.class.elem('show-repeat-selector').innerHTML;
+
+						// Költségvetés:
+						if (g.back.budgetItem) {
+							(del ? (delete g.data.bud[g.ticks.item]) : g.data.bud[g.ticks.item] = [parent, child, amount, repeat]);
+						}
+						else {
+							(del ? (delete g.data.tra[g.ticks.item]) : g.data.tra[g.ticks.item] = [parent, child, amount, comment]);
+							createHtmlList('tra');
+						}
+						// Költségvetések összeállítása minden esetben:
+						createHtmlList('bud');
+					}
+					onBackButton();
+					setDataToString();
+					// Egyenleg számítás és értesítés, Budgeten kívül:
+					if (!g.back.budgetItem) calcBalance();
+				}
+				// Vissza gomb:
+				//----------------------------------------------------------->
+				if (g.class.get(td, 'back')) {
+					amountElem.innerHTML = String(amountElem.innerHTML.fromAmount());
+					amountElem.innerHTML = ((amountElem.innerHTML.length > 1) ? amountElem.innerHTML.slice(0, amountElem.innerHTML.length-1) : '0');
+					amountElem.innerHTML = amountElem.innerHTML.toAmount();
+				}
+			}
+
+			/*-----------------------------------------------------------------------------*\
+			|	Summary számítása															|
+			|																				|
+			|																				|
+			|===============================================================================|
+			\*=============================================================================*/
+			function calcSummary(tran, direction) {
+				if (!direction) g.touch.direction = '';
+				// Ha balra húztam, növelés a következő adatokhoz:
+				if (g.touch.direction === 'Left') {
+					if (g.summary.period === 'week') {
+						g.summary.sw = g.tickByDay(g.summary.sw, 7);
+						g.summary.ew = g.tickByDay(g.summary.ew, 7);
+					}
+					if (g.summary.period === 'month') {
+						g.summary.mt++;
+						// Ugrás a következő évre:
+						if (g.summary.mt > 11) g.summary.yr++;
+					}
+					else g.summary.yr++;
+					// Előre Január:
+					if (g.summary.mt > 11) g.summary.mt = 0;
+				}
+				// Ha jobbra húztam, csökkentés az előző adatokhoz:
+				else if (g.touch.direction === 'Right') {
+					if (g.summary.period === 'week') {
+						g.summary.sw = g.tickByDay(g.summary.sw, -7);
+						g.summary.ew = g.tickByDay(g.summary.ew, -7);
+					}
+					if (g.summary.period === 'month') {
+						g.summary.mt--;
+						// Vissza az előző évre:
+						if (g.summary.mt < 0) g.summary.yr--;
+					}
+					else g.summary.yr--;
+					// Vissza December:
+					if (g.summary.mt < 0) g.summary.mt = 11;
+				}
+				let transactions = [], categories = {}, comments = {}, tra, comment, tick, values, date, a, amount, commenthtml = '', trahtml = '';
+				// Tranzakciókra bontás:
+				for (tick in g.data.tra) transactions.push([tick, g.data.tra[tick]]);
+				for (tra = transactions.length - 1; tra >= 0; tra--) {
+					tick = parseInt(transactions[tra][0]);
+					values = transactions[tra][1];
+					date = new Date(tick);
+					a = values[2].fromAmount();
+					amount = ((values[0] === 'Bevétel') ? a : -a);
+					// Heti:
+					if (((g.summary.period === 'week') && (tick > g.summary.sw) && (tick < g.summary.ew)) ||
+						// Havi:
+						((g.summary.period === 'month') && (date.getFullYear() === g.summary.yr) && (date.getMonth() === g.summary.mt)) ||
+							// Éves:
+							((g.summary.period === 'year') && (date.getFullYear() === g.summary.yr))) {
+								if (values[0] !== '') categories[values[0]] = ((categories[values[0]] || 0) + amount);
+								if (values[1] !== '') categories[values[1]] = ((categories[values[1]] || 0) + amount);
+								if (values[3] !== '') comments[values[3]] = ((comments[values[3]] || 0) + amount);
+								//------------------------------------------------------------------------------------>
+								// ['cat', 'Vásárlás']
+								if (tran) {
+									// Kategória:
+									if ((tran[0] === 'cat') && ((values[0] === tran[1]) || (values[1] === tran[1]))) {
+										trahtml += createTransHtmlItem(tick, values);
+									}
+									// Megjegyzés:
+									if ((tran[0] === 'com') && (values[3] === tran[1])) {
+										trahtml += createTransHtmlItem(tick, values);
+									}
+								}
+					}
+				}
+				// Teljes kiadás / bevétel beírása:
+				g.class.elem('full-outlay').innerHTML = ('Kiadás: ' + ((categories['Vásárlás'] || 0) + (categories['Személyes'] || 0) + (categories['Otthon'] || 0) + (categories['Autó'] || 0)).toAmount());
+				g.class.elem('full-income').innerHTML = ('Bevétel: ' + (categories['Bevétel'] || 0).toAmount());
+				// Kategória lista összeállítása:
+				Array.from(document.getElementsByClassName('summary-categories')).forEach(function(item, i) {
+					// parent / child kategória összegek:
+					let amount = categories[item.innerHTML.split('<span')[0]];
+					g.class.elem('sa-' + (i + 1)).innerHTML = (amount ? amount.toAmount() : '0');
+				});
+				// Comment lista összeállítása:
+				for (comment in comments) { if (comment !== '') commenthtml += '<div class="buttons summary-comments">' + comment + '<span class="summary-comment-amount">' + comments[comment].toAmount() + '</span></div>' }
+				g.class.elem('summary-comment-list').innerHTML = ((commenthtml !== '') ? commenthtml : '<div class="summary-not-found">Nincs tranzakció ebben az időszakban vagy<br>nem tartalmaz megjegyzést.</div>');
+				// Kiválasztott lista összeállítása:
+				g.class.elem('selected-trans-list').innerHTML = ((trahtml !== '') ? trahtml : '<div class="summary-not-found">Nincs tranzakció.</div>');
+				// Gombok megadása:
+				oneTimer('add-buttons', function() {
+					g.buttons = []; Array.from(document.getElementsByClassName('buttons')).forEach(function(button) { g.buttons.push(button) });
+				});
+				// Cím felülírás:
+				if (g.summary.period === 'week') {
+					let sd = new Date(g.summary.sw), ed = new Date(g.summary.ew);
+					g.class.elem('summary-title').innerHTML = (sd.getMonth().monthName() + ' / ' + sd.getDate().toDouble() + ' - ' + ed.getDate().toDouble());
+				}
+				if (g.summary.period === 'month') g.class.elem('summary-title').innerHTML = (g.summary.yr + g.summary.mt.monthName());
+				if (g.summary.period === 'year') g.class.elem('summary-title').innerHTML = g.summary.yr;
+				// Reset:
+				g.touch.direction = '';
+			}
+
+			// Adat kiolvasás:
+			function getDataInObjects() {
+				let data;
+				if (g.isPhone) data = ad.getData();
+				else data = '---- Banker adatfájl\n---- Másold be a "Belső tárhely / Android / data / com.example.banker / files" mappába!\n\nopt:Kezdőegyenleg=322 990\nopt:cb-4=true\nopt:cb-17=true\nopt:cb-1=true\nopt:cb-12=true\nbud:1588923702482=Autó#Üzemanyag#20 000#Hónap 1. napján\nbud:1588923856618=Vásárlás#Élelmiszer#60 000#Hónap 1. napján\nbud:1589232262501=Vásárlás#Élelmiszer#15 000#Hétfőnként\ntra:1588939205909=Bevétel#Munkabér#229 020#\ntra:1588943298965=Vásárlás#Élelmiszer#23 900#\ntra:1588956082243=Autó#Üzemanyag#10 000#\ntra:1589007985327=Otthon#Javítás#45 450#\ntra:1589008006571=Vásárlás#Élelmiszer#1 050#\ntra:1589010729939=Autó#Más#2 000#Mosás\ntra:1589011011966=Autó#Más#10 000#Bírság\ntra:1589011065560=Személyes#Megjelenés#5 280#\ntra:1589022137413=Autó#Üzemanyag#5 660#\ntra:1589038924872=Vásárlás#Élelmiszer#1 120#\ntra:1589105812344=Vásárlás#Élelmiszer#1 250#\ntra:1589192383504=Vásárlás#Élelmiszer#1 520#\ntra:1589219052183=Otthon#Rezsi#5 520#Telenor\ntra:1589229211718=Vásárlás#Élelmiszer#1 790#Bk\ntra:1589279045731=Vásárlás#Élelmiszer#1 490#\ntra:1589316168052=Vásárlás#Élelmiszer#980#Bk\ntra:1589365107915=Vásárlás#Élelmiszer#1 560#\ntra:1589401124634=Vásárlás#Élelmiszer#1 730#Bk\ntra:1589437796166=Vásárlás#Élelmiszer#1 730#Bk\ntra:1589453997292=Vásárlás#Élelmiszer#910#\ntra:1589488325042=Vásárlás#Élelmiszer#1 730#Bk\ntra:1589537555534=Vásárlás#Élelmiszer#1 560#\ntra:1589573954358=Vásárlás#Élelmiszer#1 730#Bk\ntra:1589612819381=Vásárlás#Élelmiszer#1 120#\ntra:1589634279837=Vásárlás#Élelmiszer#470#\ntra:1589634310626=Személyes#Megjelenés#4 000#Nadrág, szemüveg\ntra:1589634346495=Autó#Más#1 000#Mosás\ntra:1589649809006=Vásárlás#Élelmiszer#1 990#\ntra:1589720847930=Vásárlás#Élelmiszer#2 800#\ntra:1589807274260=Vásárlás#Élelmiszer#1 730#Bk\ntra:1589824821008=Vásárlás#Élelmiszer#1 040#\ntra:1589891926101=Vásárlás#Élelmiszer#1 760#\ntra:1589895911545=Otthon#Javítás#35 000#Sátor\ntra:1589899651047=Otthon#Javítás#2 500#Léc + ragasztó\ntra:1589902175935=Vásárlás#Élelmiszer#1 380#\ntra:1589978619909=Vásárlás#Élelmiszer#1 760#Bk\ntra:1589982154900=Vásárlás#Élelmiszer#2 530#\ntra:1590066718184=Vásárlás#Élelmiszer#1 760#Bk\ntra:1590070002849=Otthon#Javítás#1 500#Söprű\ntra:1590070013923=Vásárlás#Élelmiszer#1 370#\ntra:1590150397596=Vásárlás#Élelmiszer#3 080#Bk\ntra:1590152997370=Vásárlás#Élelmiszer#3 620#\ntra:1590216282615=Vásárlás#Élelmiszer#1 170#\ntra:1590245446834=Otthon#Javítás#13 560#Lécek, zsanér, zár\ntra:1590245892656=Vásárlás#Élelmiszer#1 570#Bk\ntra:1590247520554=Otthon#Javítás#5 000#Gipszkarton\ntra:1590250806121=Otthon#Javítás#6 000#Bútorlap, csavarok, isofoam\ntra:1590250811100=Autó#Más#360#Hűtővíz\ntra:1590251690641=Autó#Üzemanyag#10 000#\ntra:1590304783400=Vásárlás#Élelmiszer#1 840#Bk\ntra:1590308316521=Otthon#Javítás#6 800#Karton, sarokpántok\ntra:1590333834031=Vásárlás#Élelmiszer#1 280#\ntra:1590397329005=Vásárlás#Élelmiszer#1 760#Bk\ntra:1590401357733=Vásárlás#Élelmiszer#1 200#\ntra:1590437593737=Vásárlás#Élelmiszer#1 940#Bk\ntra:1590480419362=Vásárlás#Élelmiszer#1 560#Bk\ntra:1590483219812=Otthon#Javítás#1 770#Kétoldalú, pántok\ntra:1590490330021=Vásárlás#Élelmiszer#1 070#\ntra:1590523774797=Vásárlás#Élelmiszer#1 760#Bk\ntra:1590562304159=Vásárlás#Élelmiszer#1 590#\ntra:1590568498014=Otthon#Javítás#9 090#Zár, purhab\ntra:1590607997981=Vásárlás#Élelmiszer#1 280#\ntra:1590611233404=Vásárlás#Élelmiszer#1 960#Bk\ntra:1590654446770=Vásárlás#Élelmiszer#1 740#Bk\ntra:1590657340871=Otthon#Javítás#4 710#Isof, kétoldalú\ntra:1590660902627=Vásárlás#Élelmiszer#1 790#\ntra:1590747926180=Vásárlás#Élelmiszer#1 980#\ntra:1590786527352=Személyes#Megjelenés#2 000#Mosoda\ntra:1590786793521=Otthon#Rezsi#6 600#Éves kártyadíj\ntra:1590786823894=Vásárlás#Élelmiszer#800#\ntra:1590835054903=Otthon#Javítás#2 000#Purhab\ntra:1590835076090=Vásárlás#Élelmiszer#2 210#\ntra:1590852154290=Otthon#Javítás#11 230#Lámpák, purhab\ntra:1590864968554=Vásárlás#Élelmiszer#1 660#\ntra:1591001839159=Autó#Üzemanyag#10 000#\ntra:1591100534675=Vásárlás#Élelmiszer#1 760#Bk\ntra:1591102550957=Vásárlás#Élelmiszer#1 420#\ntra:1591188173479=Vásárlás#Élelmiszer#1 660#Bk\ntra:1591193946252=Vásárlás#Élelmiszer#1 270#\ntra:1591194022349=Személyes#Megjelenés#1 500#Papucs\ntra:1591275036549=Vásárlás#Élelmiszer#1 760#Bk\ntra:1591287889725=Vásárlás#Élelmiszer#1 050#\ntra:1591287898477=Vásárlás#Élelmiszer#810#-\ntra:1591377426701=Vásárlás#Élelmiszer#1 760#Bk\ntra:1591377433146=Vásárlás#Élelmiszer#880#\ntra:1591438662106=Vásárlás#Élelmiszer#1 600#\ntra:1591517665119=Vásárlás#Élelmiszer#2 620#Bk\ntra:1591530192655=Vásárlás#Élelmiszer#810#\ntra:1591611215003=Vásárlás#Élelmiszer#1 180#\ntra:1591613387317=Bevétel#Munkabér#227 540#\ntra:1591648781385=Vásárlás#Élelmiszer#1 660#Bk\ntra:1591692321234=Vásárlás#Élelmiszer#1 570#Bk\ntra:1591693585738=Autó#Üzemanyag#10 000#\ntra:1591697813525=Vásárlás#Élelmiszer#1 060#\ntra:1591735348251=Vásárlás#Élelmiszer#1 340#Bk\ntra:1591784358553=Vásárlás#Élelmiszer#1 500#\ntra:1591821475941=Vásárlás#Élelmiszer#630#\ntra:1591822161891=Vásárlás#Élelmiszer#1 590#-\ntra:1591872324930=Vásárlás#Élelmiszer#1 130#\ntra:1591908441699=Vásárlás#Élelmiszer#1 760#Bk\ntra:1591956841741=Vásárlás#Élelmiszer#1 540#\ntra:1591994701875=Vásárlás#Élelmiszer#570#\ntra:1591997102074=Vásárlás#Élelmiszer#2 380#Bk\ntra:1592050866209=Vásárlás#Élelmiszer#1 660#\ntra:1592057877421=Vásárlás#Élelmiszer#900#-\ntra:1592058278710=Vásárlás#Élelmiszer#980#\ntra:1592058293356=Autó#Más#1 000#Mosás\ntra:1592118736012=Autó#Más#1 000#Kendő, mosószer, illatosító\ntra:1592118795829=Vásárlás#Élelmiszer#1 020#\ntra:1592138883274=Vásárlás#Élelmiszer#1 360#\ntra:1592157916629=Vásárlás#Élelmiszer#1 760#Bk\ntra:1592227394632=Személyes#Megjelenés#1 800#Póló\ntra:1592227452457=Vásárlás#Élelmiszer#2 140#\ntra:1592233631067=Személyes#Szabadidő#58 490#Forex\ntra:1592312695376=Vásárlás#Élelmiszer#1 760#Bk\ntra:1592315430802=Vásárlás#Élelmiszer#610#\ntra:1592398842114=Vásárlás#Élelmiszer#2 510#Bk\ntra:1592407684670=Vásárlás#Élelmiszer#2 030#\ntra:1592485451348=Vásárlás#Élelmiszer#1 570#Bk\ntra:1592487677515=Vásárlás#Élelmiszer#2 070#\ntra:1592572142602=Vásárlás#Élelmiszer#2 550#Bk\ntra:1592584060504=Vásárlás#Műszaki#104 990#Telefon A51\ntra:1592647455501=Vásárlás#Műszaki#6 990#Telefon tok\ntra:1592647593125=Vásárlás#Élelmiszer#980#\ntra:1592652035043=Otthon#Rezsi#5 590#Telenor\ntra:1592683393338=Vásárlás#Élelmiszer#1 990#Bk\ntra:1592723002342=Vásárlás#Élelmiszer#1 190#\ntra:1592729839865=Autó#Üzemanyag#6 000#\ntra:1592748631954=Vásárlás#Élelmiszer#1 310#\ntra:1592748769203=Otthon#Rezsi#2 490#Netflix\ntra:1592823091158=Autó#Más#7 370#Tartozékok\ntra:1592858902567=Vásárlás#Élelmiszer#1 490#-\ntra:1592859748842=Vásárlás#Élelmiszer#1 760#Bk\ntra:1592862691420=Személyes#Megjelenés#2 000#Mosás\ntra:1592901387903=Vásárlás#Élelmiszer#1 500#\ntra:1592944506582=Vásárlás#Élelmiszer#1 500#Bk\ntra:1592977512161=Vásárlás#Élelmiszer#1 000#\ntra:1592986914497=Autó#Más#1 000#Mosás\ntra:1592986926628=Autó#Más#25 000#Műszaki\ntra:1592987448367=Vásárlás#Élelmiszer#1 760#Bk\ntra:1593030572763=Vásárlás#Élelmiszer#1 760#Bk\ntra:1593080372738=Vásárlás#Élelmiszer#1 700#\ntra:1593118571952=Vásárlás#Élelmiszer#1 910#Bk\ntra:1593161505156=Vásárlás#Élelmiszer#1 200#\ntra:1593263564616=Vásárlás#Élelmiszer#1 230#\ntra:1593263570124=Otthon#Javítás#6 000#Ágy\n';
+				// Sorokra bontás:
+				data.split('\n').forEach(function(row, i) {
+					if (i < 3) return null;
+					let equ = row.split('=');
+					let id = equ[0].split(':')[1];
+					if (g.find(row, 'tra')) g.data.tra[id] = equ[1].split('#');
+					if (g.find(row, 'bud')) g.data.bud[id] = equ[1].split('#');
+					if (g.find(row, 'opt')) g.data.opt[id] = equ[1];
+				});
+			}
+
+			// Adat írás:
+			function setDataToString() {
+				let data = '---- Banker adatfájl\n---- Másold be a "Belső tárhely / Android / data / com.example.banker / files" mappába!\n\n';
+				// Opciók írása:
+				for (let id in g.data.opt) data += ('opt:' + id + '=' + g.data.opt[id] + '\n');
+				// Budgetek írása:
+				for (let id in g.data.bud) data += ('bud:' + id + '=' + g.data.bud[id].join('#') + '\n');
+				// Tranzok írása:
+				for (let id in g.data.tra) data += ('tra:' + id + '=' + g.data.tra[id].join('#') + '\n');
+				// Adat felülírása:
+				if (g.isPhone) ad.setData(data);
+			}
+
+			/*-----------------------------------------------------------------------------*\
+			|	Az ablak betöltésekor														|
+			|																				|
+			|																				|
+			|===============================================================================|
+			\*=============================================================================*/
+			function bodyIsLoaded() {
+				// Mobil, NumPad megjelenítése:
+				if (g.isPhone) window.addEventListener('resize', function() {
+					if (g.class.elem('MainBody').offsetHeight === g.bodyHeight) g.class.elem('new-comment active').blur();
+				});
+				// PC, vissza:
+				else window.addEventListener('keydown', function(e) {
+					if (e.key === 'Control') onBackButton();
+				});
+				// Érintések:
+				let posX = (g.isPhone ? 'event.touches[0].clientX' : 'event.clientX'), posY = (g.isPhone ? 'event.touches[0].clientY' : 'event.clientY');
+				document.body.setAttribute((g.isPhone ? 'ontouchstart' : 'onmousedown'), 'bodyTouchDown(event.target, ' + posX + ', ' + posY + ')');
+				document.body.setAttribute((g.isPhone ? 'ontouchmove' : 'onmousemove'), 'bodyTouchMove(' + posX + ', ' + posY + ')');
+				document.body.setAttribute((g.isPhone ? 'ontouchend' : 'onmouseup'), 'bodyTouchUp()');
+				// Adatfájl kiolvasása:
+				getDataInObjects();
+				// Késleltetések lekérése:
+				g.delay.page = parseInt(getCssValue(':root', '--page-transition').split('ms')[0]);
+				g.delay.button = parseInt(getCssValue(':root', '--button-transition').split('ms')[0]);
+				// Jelenlegi dátum:
+				let cd = new Date(), gy, gm, gd, ge, gt;
+				// Hajnali 01:00 óra:
+				cd.setHours(1,0,0,0);
+				// Mai:
+				gy = cd.getFullYear();
+				gm = cd.getMonth();
+				gt = cd.getTime();
+				// Hétfő:
+				gd = cd.getDay();
+				gd += ((gd === 0) ? 6 : -1);
+				ge = cd.getDate();
+				g.ticks.monday = cd.setDate(ge - gd);
+				// Elseje:
+				g.ticks.month = cd.setDate(1);
+				// Tizedike:
+				g.ticks.ten = cd.setDate(10);
+				// Ha 1 - 10 között van a jelenlegi, akkor az előző hónap 10. lesz:
+				if (g.ticks.ten > gt) {
+					cd.setMonth(gm - 1);
+					g.ticks.ten = cd.setDate(10);
+				}
+				// Január 01.:
+				g.ticks.year = new Date(gy, 0, 1).getTime();
+				// tick-ek:
+				g.summary.startWeek = g.ticks.monday;
+				g.summary.endWeek = g.tickByDay(g.ticks.monday, 7);
+				g.summary.month = gm;
+				g.summary.year = gy;
+				// OnTouch hozzáadása a gombokhoz:
+				let td = document.getElementsByTagName('td'), cboxdivs = document.getElementsByClassName('cbox-div');
+				// NumPad td:
+				for (let i = 0; i < td.length; i++) td[i].setAttribute((g.isPhone ? 'onTouchStart' : 'onMouseDown'), 'tdTouchDown(this)');
+				// CheckBox futtatása:
+				for (let i = 1; i <= cboxdivs.length; i++) {
+					// cb-1 az első:
+					let id = ('cb-' + i), cboxdiv = g.class.elem(id), value = g.data.opt[id], checked = false;
+					// CheckBox lekérése az Adatból:
+					if (value !== undefined) {
+						checked = (value === 'true');	// true-false
+						g.class.set(cboxdiv, 'checked', checked);
+					}
+					// Ha még nincs az Adatban, akkor alapértelmezett a html-ből:
+					else if (g.class.get(cboxdiv, 'checked')) checked = true;
+					// Értesítési sáv:
+					if (g.find(id, /\b(4)\b/)) {
+						g.data.notify.isVisible = checked;
+						g.class.elem('notify-state').innerHTML = (checked ? 'elrejtése' : 'megjelenítése');
+					}
+					//--------------------------------------------------------------
+					if (checked) {
+						// Értesítési sáv módok:
+						if (g.find(id, /\b(1|2|3)\b/)) notifyColorSelector(id);
+						// Szín módok:
+						if (g.find(id, /\b(5|6|7|8|9|10|11|12)\b/)) bgColorSelector(id);
+						// Értesítés infó:
+						if (g.find(id, /\b(16|17|18)\b/)) notifyInfoSelector(id);
+						// Gombok stílusa:
+						if (g.find(id, /\b(19|20|21)\b/)) buttonStyleSelector(id);
+					}
+				}
+				// Body megjelenítése:
+				g.class.set('MainBody', 'loaded', true);
+				// Fadein után:
+				setTimeout(function() {
+					// html integrálás:
+					createHtmlList('tra');
+					createHtmlList('bud');
+					// Egyenleg számítása:
+					calcBalance();
+					// Gombok áttűnése:
+					setCssValue('.buttons', 'transition', 'background var(--button-transition) linear');
+					// Body magasság megadása:
+					g.bodyHeight = g.class.elem('MainBody').offsetHeight;
+					g.touch.limitX = Math.floor(window.innerWidth * 0.2);
+					g.touch.limitY = Math.floor(window.innerHeight * 0.04);
+					// Fedőréteg, kezdéskor block:
+					g.class.elem('overlay').style.display = 'none';
+				}, g.delay.page);
+			}
+
+		</script>
+	</body>
+</html>
